@@ -51,8 +51,10 @@ async def user_text(user: UsersUserFull) -> str:
         overdue = int((time() - l.end_date) // 86400)
         max_overdue = max(max_overdue, overdue)
         total_commission += l.commission
-    rating, rating_name = dbu.rating, dbu.rating_name
-    if dbu.loyal:
+    rating, rating_name = getattr(dbu, "rating", 0), getattr(
+        dbu, "rating_name", ADMIN["check"]["no_info"]
+    )
+    if getattr(dbu, "loyal"):
         loyal = datetime.fromtimestamp(dbu.loyal).strftime(DATETIME_FORMAT)
     else:
         loyal = "—"
