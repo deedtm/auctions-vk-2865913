@@ -7,8 +7,11 @@ from vkbottle_types.objects import UsersUserFull
 
 from config.admin import INFO_ACCESS
 from config.time import DATETIME_FORMAT
-from database.lots.utils import (get_lots_by_user, get_lots_with_commissions,
-                                 get_user_win_lots)
+from database.lots.utils import (
+    get_lots_by_user,
+    get_lots_with_commissions,
+    get_user_win_lots,
+)
 from database.payments.utils import get_total_amount_by_user_id
 from database.users.utils import get_user
 from templates import ADMIN_COMMANDS as ADMIN
@@ -115,6 +118,7 @@ async def swipe_handler(e: MessageEvent):
 
     user = users[offset]
     text = await user_text(user)
+
     await e.edit_message(
         text,
         attachment=f"photo{user.photo_id}",
