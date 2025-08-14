@@ -39,7 +39,7 @@ class RegistrationMiddleware(BaseMiddleware[Message]):
             kwargs = {}
             if str(user.id) in self.moderators_ids:
                 kwargs["access_level"] = MODERATOR_ACCESS
-            elif str(user.id) in self.admins_ids:
+            if str(user.id) in self.admins_ids:
                 kwargs["access_level"] = ADMIN_ACCESS
             await add_user(user, **kwargs)
             self.send({"info": user})
