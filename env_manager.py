@@ -4,7 +4,8 @@ from rich.console import Console
 from rich.table import Table
 
 if not os.path.exists(".env"):
-    os.makedirs(".env", exist_ok=True)
+    with open('.env', 'w') as f:
+        f.write('')
 console = Console()
 
 header = lambda s: "[bold magenta]" + f"[ {s} ]".center(50, "=") + "[/bold magenta]"
