@@ -37,10 +37,10 @@ class RegistrationMiddleware(BaseMiddleware[Message]):
         user_db = await get_user(user.id)
         if user_db is None:
             kwargs = {}
-            if str(user.id) in self.moderators_ids:
-                kwargs["access_level"] = MODERATOR_ACCESS
             if str(user.id) in self.admins_ids:
                 kwargs["access_level"] = ADMIN_ACCESS
+            elif str(user.id) in self.moderators_ids:
+                kwargs["access_level"] = MODERATOR_ACCESS
             await add_user(user, **kwargs)
             self.send({"info": user})
         CACHE_USERS.add(user.id)

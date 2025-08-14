@@ -54,7 +54,7 @@ async def user_text(user: UsersUserFull) -> str:
     rating, rating_name = getattr(dbu, "rating", 0), getattr(
         dbu, "rating_name", ADMIN["check"]["no_info"]
     )
-    if getattr(dbu, "loyal"):
+    if getattr(dbu, "loyal", None):
         loyal = datetime.fromtimestamp(dbu.loyal).strftime(DATETIME_FORMAT)
     else:
         loyal = "—"
