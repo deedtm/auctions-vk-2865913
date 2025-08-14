@@ -1,13 +1,4 @@
-from sqlalchemy import Column, Integer, Text
-from .connect import Base
+from .lots import models as lots_models
+from .users import models as users_models
 
-class User(Base):
-    __tablename__ = 'users'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, unique=True, nullable=False)
-    nickname = Column(Text, nullable=True)
-    first_name = Column(Text, nullable=True)
-    last_name = Column(Text, nullable=True)
-    register_date = Column(Text, nullable=True)
-    access_level = Column(Integer, default=1, nullable=False)
+__all__ = ("lots_models", "users_models")

@@ -1,0 +1,13 @@
+[
+    {"literals": ["pa"], "args": ["{номера лотов/ссылки}"], "description": "оплатить комиссию", "access": 2},
+    {"literals": ["ai"], "args": ["{номер лота/ссылка}"], "description": "информация о лоте", "access": 2},
+    {"literals": ["check"], "args": ["{ссылка}"], "description": "информация о пользователе", "access": 2},
+    {"literals": ["setbalance", "sb"], "args": ["{ссылка}", "[сумма]"], "description": "установка баланса (без аргумента \"сумма\" баланс обнулится)", "access": 3},
+    {"literals": ["setloyal", "sl"], "args": ["{ссылка}", "[длительность в днях]"], "description": "установка абонемента (без аргумента \"длительность\" абонемент удалится)", "access": 3},
+    {"literals": ["ban"], "args": ["{ссылка}", "{срок}"], "description": "бан", "access": 4},
+    {"literals": ["unban"], "args": ["{ссылка}"], "description": "разбан", "access": 4},
+    {"literals": ["managegroups", "mg"], "description": "управление группами", "access": 3},
+    {"literals": ["digest"], "description": "настройки дайджеста", "access": 3},
+    {"literals": ["record"], "description": "выгрузка должников в Excel", "access": 2},
+    {"literals": ["aucs"], "args": ["[ссылка]"], "description": "выгрузка аукционов в Excel (без аргумента выгрузятся аукционы данной группы)", "access": 2}
+]

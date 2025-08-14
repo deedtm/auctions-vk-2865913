@@ -14,7 +14,7 @@ engine = create_async_engine(DATABASE_URL, echo=False, future=True)
 async_session = async_sessionmaker(engine, expire_on_commit=False)
 Base = declarative_base()
 
-from . import models
+from .models import *
 
 async def init_db() -> None:
     """Initialize database schema (create tables)"""
