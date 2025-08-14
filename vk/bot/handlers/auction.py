@@ -132,19 +132,18 @@ async def poll_handler(msg: Message):
             await msg.answer(ERRORS["no_attachments"])
             return
     else:
+        if step in (4, 5, 6, 9):
+            args = [msg, msg.text, step, 0]
+            if step == 6:
+                args[-1] = int(lot_data[2])
+            res = await check_ints(*args)
+            if res:
+                await msg.answer(res)
+                return
         if msg.text:
             lot_data.append(msg.text)
         else:
             await msg.answer(COMMANDS["auction"]["poll_no_answer"])
-            return
-
-    if step in (4, 5, 6, 9):
-        args = [msg, msg.text, step, 0]
-        if step == 6:
-            args[-1] = int(lot_data[2])
-        res = await check_ints(*args)
-        if res:
-            await msg.answer(res)
             return
 
     if step > max_step:
