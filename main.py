@@ -2,6 +2,9 @@ import asyncio
 from logging import DEBUG, INFO
 
 from dotenv import load_dotenv
+
+load_dotenv()
+
 from vkbottle.bot import run_multibot
 from vkbottle.tools import LoopWrapper
 
@@ -10,7 +13,8 @@ from database.utils import init_schemas
 from log import get_logger
 from vk.bot import api as bot_api
 from vk.bot import bot as bot_bot
-from vk.bot.moderation.moderation import moderation_wrapper, send_results_wrapper
+from vk.bot.moderation.moderation import (moderation_wrapper,
+                                          send_results_wrapper)
 from vk.bot.notificator import ban_wrapper, collector_wrapper, loyal_wrapper
 from vk.publisher import apis as publisher_apis
 from vk.publisher.digest.posting import digest_wrapper
@@ -33,9 +37,7 @@ async def the_looping(logger):
             loyal_wrapper(),
             digest_wrapper(),
         ]
-        exceptions = await asyncio.gather(
-            *tasks, return_exceptions=True
-        )
+        exceptions = await asyncio.gather(*tasks, return_exceptions=True)
         for ind, exc in enumerate(exceptions[:-1]):
             if exc is None:
                 continue
@@ -51,7 +53,6 @@ async def the_looping(logger):
 
 
 if __name__ == "__main__":
-    load_dotenv()
     logger = get_logger(__name__, DEBUG)
     logger.info("Starting bot...")
 
