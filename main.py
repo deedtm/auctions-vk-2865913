@@ -1,6 +1,4 @@
 import asyncio
-import sys
-from logging import DEBUG, INFO
 
 from dotenv import load_dotenv
 
@@ -49,12 +47,7 @@ async def the_looping(logger):
 
 
 if __name__ == "__main__":
-    log_lvl = INFO
-    if len(sys.argv) > 1:
-        if sys.argv[1].lower() == "debug":
-            log_lvl = DEBUG
-
-    logger = get_logger(__name__, log_lvl)
+    logger = get_logger(__name__)
     logger.info("Starting bot...")
 
     lw = LoopWrapper(
