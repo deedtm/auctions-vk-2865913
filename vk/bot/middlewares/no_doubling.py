@@ -4,10 +4,6 @@ from vkbottle.bot import Message
 _HANDLED = set()
 
 
-class EmptyError(Exception):
-    """Raised when the middleware is stopped without an error."""
-
-
 class NoDoublingRawMiddleware(BaseMiddleware[dict]):
     def __init__(self, event, view):
         super().__init__(event, view)

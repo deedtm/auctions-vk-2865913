@@ -1,49 +1,43 @@
 import os
+
 import dotenv
 from rich.console import Console
 from rich.table import Table
 
 if not os.path.exists(".env"):
-    with open('.env', 'w') as f:
-        f.write('')
+    with open(".env", "w") as f:
+        f.write("")
 console = Console()
 
 header = lambda s: "[bold magenta]" + f"[ {s} ]".center(50, "=") + "[/bold magenta]"
 mini_header = lambda s: "[bold magenta]" + f"[ {s} ]" + "[/bold magenta]"
 success = lambda s: "[yellow]" + s + "[/yellow]"
 info = lambda s: "[italic blue]" + s + "[/italic blue]"
+important = lambda s: "[bold]" + s + "[/bold]"
 
 
-def set_bot_token():
+def set_group_tokens():
     print()
-    console.print(header("Установка токена бота"))
-    console.print(info("Токен должен иметь доступ к сообщениям сообщества"))
-    bot_token = input("Введите токен: ")
-    dotenv.set_key(".env", "VK_TOKEN", bot_token, quote_mode="never")
-    console.print(success("Токен бота успешно установлен!"))
-
-
-def set_auction_tokens():
-    print()
-    console.print(header("Установка токенов для аукционов"))
-    console.print(info("Все токены должны иметь доступ к стене сообщества"))
+    console.print(header("Установка токенов группы"))
+    console.print(
+        info(
+            f"Все токены должны иметь доступ к {important('управлению, сообщениям, документам и стене сообщества')}"
+        )
+    )
     console.print(info("Для окончания установки нажмите Enter без ввода чего-либо"))
     i = 1
-    auction_token = input(f"Введите токен {i} для аукционов: ")
+    auction_token = input(f"Введите токен группы №{i}: ")
     tokens = [auction_token]
     while auction_token:
         i += 1
-        auction_token = input(
-            f"Введите токен {i} для аукционов (или нажмите Enter для завершения): "
-        )
+        auction_token = input(f"Введите токен группы №{i}: ")
         if auction_token:
             tokens.append(auction_token)
         else:
             break
 
-
     dotenv.set_key(".env", "PUBLISHER_TOKENS", " ".join(tokens), quote_mode="never")
-    console.print(success("Токены для аукционов успешно установлены!"))
+    console.print(success("Токены групп успешно установлены!"))
 
 
 def set_user_token():
@@ -58,17 +52,36 @@ def set_user_token():
 def set_moderator_ids():
     print()
     console.print(header("Установка айди модераторов"))
-    console.print(info("Введите айди модераторов через пробел"))
-    moderator_ids = input("Введите айди модераторов: ")
+    console.print(info(f"Введите айди {important('модераторов')} через пробел"))
+    moderator_ids = console.input(f"Введите айди {important('модераторов')}: ")
     dotenv.set_key(".env", "MODERATORS_IDS", moderator_ids, quote_mode="never")
     console.print(success("Айди модераторов успешно установлены!"))
+
+
+def set_admin_ids():
+    print()
+    console.print(header("Установка айди админов"))
+    console.print(info(f"Введите айди {important('админов')} через пробел"))
+    admin_ids = console.input(f"Введите айди {important('админов')}: ")
+    dotenv.set_key(".env", "ADMINS_IDS", admin_ids, quote_mode="never")
+    console.print(success("Айди админов успешно установлены!"))
+
+
+def set_terminal():
+    print()
+    console.print(header("Установка терминала"))
+    console.print(info("Введите данные от терминала"))
+    terminal_key = console.input("Введите ключ терминала: ")
+    secret_key = console.input("Введите пароль терминала: ")
+    dotenv.set_key(".env", "TERMINAL_KEY", terminal_key, quote_mode="never")
+    dotenv.set_key(".env", "SECRET_KEY", secret_key, quote_mode="never")
+    console.print(success("Ключ и пароль терминала успешно установлены!"))
 
 
 def set_full_tokens():
     print()
     console.print(header("Полная установка токенов"))
-    set_bot_token()
-    set_auction_tokens()
+    set_group_tokens()
     set_user_token()
     console.print(success("Полная установка токенов завершена!"))
     main_menu()
@@ -77,25 +90,19 @@ def set_full_tokens():
 def set_full_env():
     print()
     console.print(header("Полная установка окружения"))
-    set_bot_token()
-    set_auction_tokens()
+    set_group_tokens()
+    set_user_token()
     set_moderator_ids()
+    set_admin_ids()
+    set_terminal()
     console.print(success("Полная установка окружения завершена!"))
     main_menu()
 
 
-def reset_bot_token():
-    print()
-    console.print(header("Сброс токена бота"))
-    dotenv.unset_key(".env", "VK_TOKEN")
-    console.print(success("Токен бота успешно сброшен!"))
-
-
-def reset_auction_tokens():
+def reset_group_tokens():
     print()
     console.print(header("Сброс токенов для аукционов"))
     dotenv.unset_key(".env", "PUBLISHER_TOKENS")
-    dotenv.unset_key(".env", "PUBLISHER_WATERFALLS")
     console.print(success("Токены для аукционов успешно сброшены!"))
 
 
@@ -113,12 +120,28 @@ def reset_moderator_ids():
     console.print(success("Айди модераторов успешно сброшены!"))
 
 
+def reset_admins_ids():
+    print()
+    console.print(header("Сброс айди админов"))
+    dotenv.unset_key(".env", "ADMINS_IDS")
+    console.print(success("Айди админов успешно сброшены!"))
+
+
+def reset_terminal():
+    print()
+    console.print(header("Сброс терминала"))
+    dotenv.unset_key(".env", "TERMINAL_KEY")
+    dotenv.unset_key(".env", "SECRET_KEY")
+    console.print(success("Ключ и пароль терминала успешно сброшены!"))
+
+
 def reset_full_env():
     print()
     console.print(header("Полный сброс окружения"))
-    reset_bot_token()
-    reset_auction_tokens()
+    reset_group_tokens()
     reset_moderator_ids()
+    reset_admins_ids()
+    reset_terminal()
     console.print(success("Полный сброс окружения завершен!"))
     main_menu()
 
@@ -146,23 +169,26 @@ def full_setup_menu():
 def setup_menu():
     while True:
         console.print(header("Установка окружения"))
-        console.print("[green]1. Установить токен бота[/green]")
-        console.print("[green]2. Установить токены для обслуживания аукционов[/green]")
-        console.print("[green]3. Установить токен пользователя[/green]")
-        console.print("[green]4. Установить айди модераторов[/green]")
-        console.print("[white]5. Назад[/white]")
+        console.print("[green]1. Установить токены группы[/green]")
+        console.print("[green]2. Установить токен пользователя[/green]")
+        console.print("[green]3. Установить айди модераторов[/green]")
+        console.print("[green]4. Установить айди админов[/green]")
+        console.print("[green]5. Установить терминал[/green]")
+        console.print("[white]6. Назад[/white]")
 
         choice = input("Выберите действие: ")
         print()
         if choice == "1":
-            set_bot_token()
+            set_group_tokens()
         elif choice == "2":
-            set_auction_tokens()
-        elif choice == "3":
             set_user_token()
-        elif choice == "4":
+        elif choice == "3":
             set_moderator_ids()
+        elif choice == "4":
+            set_admin_ids()
         elif choice == "5":
+            set_terminal()
+        elif choice == "6":
             break
         else:
             console.print("[red]Неверный выбор[/red]")
@@ -171,24 +197,25 @@ def setup_menu():
 def reset_menu():
     while True:
         console.print(header("Сброс окружения"))
-        console.print("[green]1. Сбросить токен бота[/green]")
-        console.print("[green]2. Сбросить токены для обслуживания аукционов[/green]")
-        console.print("[green]3. Сбросить токен пользователя[/green]")
-        console.print("[green]4. Сбросить айди модераторов[/green]")
-        console.print("[white]5. Назад[/white]")
+        console.print("[green]1. Сбросить токены[/green]")
+        console.print("[green]2. Сбросить токен пользователя[/green]")
+        console.print("[green]3. Сбросить айди модераторов[/green]")
+        console.print("[green]4. Сбросить айди админов[/green]")
+        console.print("[green]5. Сбросить терминал[/green]")
+        console.print("[white]6. Назад[/white]")
 
         choice = input("Выберите действие: ")
         print()
         if choice == "1":
-            reset_bot_token()
+            reset_group_tokens()
         elif choice == "2":
-            reset_auction_tokens()
-        elif choice == "3":
             reset_user_token()
-        elif choice == "4":
+        elif choice == "3":
             reset_moderator_ids()
+        elif choice == "4":
+            reset_admins_ids()
         elif choice == "5":
-            break
+            reset_terminal()
         else:
             console.print("[red]Неверный выбор[/red]")
 

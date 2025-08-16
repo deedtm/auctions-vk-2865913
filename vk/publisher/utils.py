@@ -6,14 +6,22 @@ from database.users.utils import get_user
 
 from ..bot.config import err_handler
 from ..utils import get_self_group
-from .config import apis, logger, user_api
+from .config import apis, groups_apis, logger, user_api
 
 
 async def init_groups():
+    global groups_apis
+
     for api in apis:
         group = await get_self_group(api)
-        if not await get_group(group.id):
-            await add_group(group.id, group.name)
+        dbgroup = await get_group(group.id)
+        if not dbgroup:
+            dbgroup = await add_group(group.id, group.name)
+        groups_apis[str(abs(group.id))] = api
+
+
+def get_api(group_id: int):
+    return groups_apis.get(str(abs(group_id)), None)
 
 
 @err_handler.catch

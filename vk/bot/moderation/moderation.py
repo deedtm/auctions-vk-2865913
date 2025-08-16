@@ -1,18 +1,16 @@
-from vkbottle.bot import Message
-from database.lots.models import Lot
-from config.vk import fake_moderation_duration, MODERATION_INTERVAL, RESULTS_INTERVAL
-from database.lots.utils import (
-    is_lot_sended,
-    get_pending_lots,
-    get_unsended_lots,
-    update_lot_data,
-)
-from ..config import api, MODERATORS_IDS, logger
-from ...utils import get_self_group
 from asyncio import sleep
+from random import randint
+
+from config.vk import (MODERATION_INTERVAL, RESULTS_INTERVAL,
+                       fake_moderation_duration)
+from database.lots.models import Lot
+from database.lots.utils import (get_pending_lots, get_unsended_lots,
+                                 is_lot_sended, update_lot_data)
 from enums.moderation import LotStatusDB, ModerationResult
 from templates import MODERATION
-from random import randint
+
+from ...publisher.utils import get_api
+from ..config import MODERATORS_IDS, logger
 
 
 async def moderation_wrapper():
@@ -68,18 +66,17 @@ async def _set_result(lot: Lot):
 
 
 async def send_results_wrapper():
-    group = await get_self_group(api)
     while True:
         try:
-            await send_results(group)
+            await send_results()
             await sleep(RESULTS_INTERVAL)
         except Exception as e:
             logger.error(f"send_results_wrapper: {e.__class__.__name__}: {e}")
             return
 
 
-async def send_results(group):
-    lots = await get_unsended_lots(group.id)
+async def send_results():
+    lots = await get_unsended_lots()
     for lot in lots:
         await _send_result(lot)
 
@@ -89,4 +86,5 @@ async def _send_result(lot: Lot):
     if lot.moderation_result == ModerationResult.REJECTED.value:
         args.append(lot.moderation_response or "")
     text = MODERATION[lot.moderation_result].format(*args)
+    api = get_api(lot.group_id)
     await api.messages.send(lot.user_id, message=text, random_id=randint(10**6, 10**8))

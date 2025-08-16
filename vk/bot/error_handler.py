@@ -4,12 +4,16 @@ from random import randint
 
 from vkbottle.exception_factory.base_exceptions import VKAPIError
 
-from .config import api, err_handler, logger
+from ..publisher.config import groups_apis
+from .config import err_handler, logger
 
 
 @err_handler.register_error_handler(VKAPIError)
 async def vk_api_handler(e: VKAPIError):
     if e.code == 14:
+        apis = iter(groups_apis.values())
+        api = next(apis)
+
         logger.warning("Captcha required! Using API to notify admins...")
         peer_ids = list(map(int, os.getenv("ADMINS_IDS", "").split()))
         redirect_uri = e.kwargs.get("redirect_uri")
@@ -20,6 +24,9 @@ async def vk_api_handler(e: VKAPIError):
                     random_id=randint(10**6, 10**7),
                     message=f"[КАПЧА]\n\n{redirect_uri}\n\n❗️  Обязательно обновите страницу после решения капчи",
                 )
+            except VKAPIError[901]:
+                api = next(apis)
+
             except Exception as exc:
                 logger.error(
                     f"Failed to notify id{pid} - {exc.__class__.__name__}: {exc}\nCAPTCHA URI: {redirect_uri}"

@@ -8,12 +8,12 @@ from config.admin import ADMIN_ACCESS, MODERATOR_ACCESS
 from database.users.utils import add_user, get_user
 from templates import COMMANDS
 
-from ..config import api, state_dispenser
+from ..config import state_dispenser
 from ..handlers.__utils import get_command
 
 STOP_LITERALS = get_command("stop")["literals"]
 STOP_LITERALS.extend([l[1:] for l in STOP_LITERALS])
-CACHE_USERS = set()
+CACHED_USERS = set()
 
 
 class RegistrationMiddleware(BaseMiddleware[Message]):
@@ -30,9 +30,10 @@ class RegistrationMiddleware(BaseMiddleware[Message]):
             await self.event.answer(COMMANDS["stop"])
             return
 
-        if self.event.from_id in CACHE_USERS:
+        if self.event.from_id in CACHED_USERS:
             return
-
+        
+        api = self.event.ctx_api
         user = (await api.users.get(user_ids=[self.event.from_id]))[0]
         user_db = await get_user(user.id)
         if user_db is None:
@@ -43,4 +44,4 @@ class RegistrationMiddleware(BaseMiddleware[Message]):
                 kwargs["access_level"] = MODERATOR_ACCESS
             await add_user(user, **kwargs)
             self.send({"info": user})
-        CACHE_USERS.add(user.id)
+        CACHED_USERS.add(user.id)

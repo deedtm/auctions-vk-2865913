@@ -1,7 +1,7 @@
 from vkbottle import Bot
 
 from ..types import labeler
-from .config import api, state_dispenser
+from .config import state_dispenser
 from .error_handler import *
 from .handlers import *
 from .middlewares import *

@@ -45,7 +45,7 @@ async def wall_reply_new(event: GroupTypes.WallReplyNew):
         to_update_post, to_update_lot = True, True
         update_kwargs["moderation_status"] = LotStatusDB.REDEEMED.value
 
-    elif lot.last_bet and mn_new_bet >= bet >= mn_start_bet:
+    elif lot.last_bet and mn_new_bet > bet >= mn_start_bet:
         template = BETS["lt_last"]
         args = (lot.step_price, lot.last_bet)
 
@@ -66,7 +66,7 @@ async def wall_reply_new(event: GroupTypes.WallReplyNew):
         await update_lot_data(lot.id, **update_kwargs)
     # if to_update_post:
     #     await edit_post(lot)
-    if lot.last_bet_comment:
+    if lot.last_bet_comment and last_bettor_text:
         await w.create_comment(
             owner_id=o.post_owner_id,
             post_id=o.post_id,

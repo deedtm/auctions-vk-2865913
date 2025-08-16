@@ -1,15 +1,15 @@
 from os import path as p
 
+from vkbottle import DocMessagesUploader
 from vkbottle.bot import Message
 
 from config.admin import EXPORT_DIRECTORY, INFO_ACCESS
 from database.export.utils import export_to_excel
-from database.users.utils import get_user
 from database.lots.utils import get_lots_with_commissions
+from database.users.utils import get_user
 from templates import ERRORS
 
 from ....types import labeler
-from ...config import doc_msgs_uploader
 from ...rules import AccessFilter, CommandFilter
 from .__utils import get_command
 
@@ -35,5 +35,6 @@ async def record_handler(msg: Message):
 
     filepath = p.join(EXPORT_DIRECTORY, msg.text)
     filepath = export_to_excel(users, filepath)
+    doc_msgs_uploader = DocMessagesUploader(msg.ctx_api)
     docs = await doc_msgs_uploader.upload(filepath, peer_id=msg.peer_id)
     await msg.answer(attachment=docs)

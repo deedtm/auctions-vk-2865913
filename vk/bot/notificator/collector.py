@@ -99,4 +99,5 @@ async def get_notification_text(overdue_data: dict[int, list[Lot]]):
 
 async def _send_notification(user_id: int, overdue_data: dict[int, list[Lot]]):
     text = await get_notification_text(overdue_data)
-    await send_notification(user_id, text, keyboard=seller_notification_kb)
+    group_id = list(overdue_data.values())[0][0].group_id
+    await send_notification(group_id, user_id, text, keyboard=seller_notification_kb)

@@ -1,5 +1,6 @@
 from os import path as p
 
+from vkbottle import DocMessagesUploader
 from vkbottle.bot import Message
 
 from config.admin import EXPORT_DIRECTORY, INFO_ACCESS
@@ -9,7 +10,6 @@ from templates import ERRORS
 
 from ....types import labeler
 from ....utils import get_groups_from_links, get_self_group
-from ...config import doc_msgs_uploader
 from ...rules import AccessFilter, CommandFilter
 from .__utils import get_command, separate_args
 
@@ -36,5 +36,6 @@ async def aucs_handler(msg: Message):
 
     filepath = p.join(EXPORT_DIRECTORY, literal + str(group_id))
     filepath = export_to_excel(lots, filepath)
+    doc_msgs_uploader = DocMessagesUploader(msg.ctx_api)
     docs = await doc_msgs_uploader.upload(filepath, peer_id=msg.peer_id)
     await msg.answer(attachment=docs)

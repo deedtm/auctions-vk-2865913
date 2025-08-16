@@ -1,4 +1,5 @@
 import asyncio
+import sys
 from logging import DEBUG, INFO
 
 from dotenv import load_dotenv
@@ -11,16 +12,11 @@ from vkbottle.tools import LoopWrapper
 from config.vk import LOOPING_INITIAL_DELAY
 from database.utils import init_schemas
 from log import get_logger
-from vk.bot import api as bot_api
+# from vk.bot import api as bot_api
 from vk.bot import bot as bot_bot
-from vk.bot.moderation.moderation import (moderation_wrapper,
-                                          send_results_wrapper)
-from vk.bot.notificator import ban_wrapper, collector_wrapper, loyal_wrapper
 from vk.publisher import apis as publisher_apis
-from vk.publisher.digest.posting import digest_wrapper
-from vk.publisher.end import end_wrapper
-from vk.publisher.publish import post_wrapper, reset_posts_amounts_wrapper
 from vk.publisher.utils import init_groups
+from vk.wrappers import *
 
 
 async def the_looping(logger):
@@ -42,7 +38,7 @@ async def the_looping(logger):
             if exc is None:
                 continue
             logger.error(
-                f"Error in {tasks[ind].__name__}: {exc.__class__.__name__} {exc}"
+                f"Error in {tasks[ind].__name__} > {exc.__class__.__name__} {exc}"
             )
         exceptions = list(filter(lambda x: isinstance(x, Exception), exceptions))
         if exceptions:
@@ -53,7 +49,12 @@ async def the_looping(logger):
 
 
 if __name__ == "__main__":
-    logger = get_logger(__name__, DEBUG)
+    log_lvl = INFO
+    if len(sys.argv) > 1:
+        if sys.argv[1].lower() == "debug":
+            log_lvl = DEBUG
+
+    logger = get_logger(__name__, log_lvl)
     logger.info("Starting bot...")
 
     lw = LoopWrapper(
@@ -61,4 +62,6 @@ if __name__ == "__main__":
     )
 
     bot_bot.loop_wrapper = lw
-    run_multibot(bot_bot, [bot_api] + publisher_apis)
+    # apis = [bot_api] + publisher_apis
+    apis = publisher_apis
+    run_multibot(bot_bot, apis)

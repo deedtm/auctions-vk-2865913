@@ -1,31 +1,35 @@
 import time
 from asyncio import sleep
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from random import randint
+
 from vkbottle import PhotoWallUploader
-from config.vk import AUCTIONS_ENDING_TIME, POSTING_INTERVAL, GROUP_LOTS_LIMIT
+
 from config.time import TZ
+from config.vk import AUCTIONS_ENDING_TIME, GROUP_LOTS_LIMIT, POSTING_INTERVAL
+from database.groups.utils import (
+    get_available_group,
+    get_group,
+    get_posts_amount,
+    reset_all_posts_amount,
+    set_posts_amount,
+)
 from database.lots.models import Lot
 from database.lots.utils import (
     get_unsended_lots,
-    update_lot_data,
     replace_moderation_status,
-)
-from database.groups.utils import (
-    get_group,
-    get_posts_amount,
-    set_posts_amount,
-    get_available_group,
-    reset_all_posts_amount,
+    update_lot_data,
 )
 from database.users.utils import get_user
 from enums.moderation import LotStatusDB
 from templates import PUBLISH
-from .config import user_api, apis, logger
-from ..bot.config import api as bot_api, state_dispenser
-from ..states_groups.publisher import PublisherStates
-from ..hyperlinks import group_post_hl, group_link
+
+from ..bot.config import state_dispenser
+from ..hyperlinks import group_link, group_post_hl
 from ..keyboards.publisher import overlimit_kb
+from ..states_groups.publisher import PublisherStates
+from ..publisher.utils import get_api
+from .config import apis, logger, user_api
 
 
 async def reset_posts_amounts_wrapper():
@@ -113,6 +117,7 @@ async def send_overlimited_notification(user_id: int, lots: list[Lot]):
 
     text = tmpl.format(*args)
 
+    bot_api = get_api(lots[0].group_id)
     await bot_api.messages.send(
         peer_id=user_id,
         random_id=randint(10**6, 10**7),
@@ -174,6 +179,7 @@ async def _post_lot(lot: Lot):
 
         hl = group_post_hl(lot.group_id, post.post_id, lot.description)
         text = PUBLISH["published"].format(hl)
+        bot_api = get_api(lot.group_id)
         await bot_api.messages.send(
             peer_id=lot.user_id, random_id=randint(10**6, 10**7), message=text
         )

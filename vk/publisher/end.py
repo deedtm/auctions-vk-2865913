@@ -1,10 +1,7 @@
 from asyncio import sleep
-from datetime import datetime
 from random import randint
 from typing import Optional
 
-from config.time import TZ
-from config.vk import AUCTIONS_ENDING_TIME as ENDING_TIME
 from config.vk import AUCTIONS_EXTENSION, MAX_RATING_TO_DANGER
 from database.groups.utils import get_group
 from database.lots.models import Lot
@@ -13,21 +10,17 @@ from database.users.utils import get_user
 from enums.moderation import LotStatusDB
 from templates import BETS
 
-from ..bot.config import api
 from ..hyperlinks import group_post_hl
 from ..keyboards.bets import Keyboard, seller_notification_kb
+from ..publisher.utils import get_api
 from .config import logger
 from .utils import edit_post
 
 _endings = {}
-DEFAULT_DELAY = 3600
+DEFAULT_DELAY = 60
 
 
 async def end_wrapper():
-    now = datetime.now(TZ)
-    delay = DEFAULT_DELAY + ENDING_TIME.minute - (now.minute * 60 + now.second)
-    await sleep(delay)
-
     delay = DEFAULT_DELAY
     while True:
         try:
@@ -118,6 +111,7 @@ async def _send_notification(
     template = template or BETS[recipient + "_notification"]
     hl = group_post_hl(lot.group_id, lot.post_id, lot.description)
     text = template.format(lot=hl, **template_kwargs)
+    api = get_api(lot.group_id)
     await api.messages.send(
         peer_id=peer_id, message=text, random_id=randint(10**7, 10**8), keyboard=kb
     )

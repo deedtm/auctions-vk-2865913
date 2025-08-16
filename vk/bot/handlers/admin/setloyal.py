@@ -56,4 +56,4 @@ async def setloyal_handler(msg: Message):
 
     tmpl = ADMIN["setloyal"]["user_notification"]
     text = tmpl.format(loyal_date)
-    await send_notification(user.id, text)
+    await send_notification(msg.group_id, user.id, text)

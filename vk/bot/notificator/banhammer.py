@@ -7,7 +7,7 @@ from database.groups.utils import get_all_groups
 from database.lots.utils import get_lots_with_commissions
 
 from ...publisher.config import user_api
-from ..config import api, logger
+from ..config import logger
 
 
 async def ban_wrapper():

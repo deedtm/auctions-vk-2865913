@@ -9,6 +9,7 @@ PUBLISHER_TOKENS = os.getenv("PUBLISHER_TOKENS").split(" ")
 USER_TOKEN = os.getenv("USER_TOKEN")
 
 apis = [API(token) for token in PUBLISHER_TOKENS]
+groups_apis = {}
 user_api = API(USER_TOKEN)
 # labeler = BotLabeler()
 
