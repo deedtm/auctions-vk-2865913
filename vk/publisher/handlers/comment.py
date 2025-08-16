@@ -21,7 +21,7 @@ async def wall_reply_new(event: GroupTypes.WallReplyNew):
     bet = int(o.text)
     lot = await get_lot(group_id=o.post_owner_id, post_id=o.post_id)
 
-    mn_start_bet = lot.start_price + lot.step_price
+    mn_start_bet = lot.start_price # + lot.step_price
     mn_new_bet = max((lot.last_bet or 0) + lot.step_price, mn_start_bet)
 
     last_bettor_text = None
@@ -33,9 +33,9 @@ async def wall_reply_new(event: GroupTypes.WallReplyNew):
         "last_bettor_id": o.from_id,
     }
 
-    if bet < lot.start_price:
+    if bet < mn_start_bet:
         template = BETS["lt_start"]
-        args = (lot.step_price, lot.start_price)
+        args = (lot.step_price, mn_start_bet)
 
     elif lot.redemption_price and bet >= lot.redemption_price:
         template = BETS["redemption_bet"]
