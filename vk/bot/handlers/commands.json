@@ -1,6 +1,5 @@
 [
     {"literals": ["start", "старт", "начать"], "description": "начальное сообщение"},
-    {"literals": ["ping"], "description": "PONG"},
     {"literals": ["help", "хелп", "помощь", "команды", "commands"], "description": "справка по командам"},
     {"literals": ["auction", "аук", "fer"], "description": "создать лот"},
     {"literals": ["commission", "commissions", "комиссии", "комиссия"], "description": "оплатить комиссии"},
