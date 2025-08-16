@@ -86,6 +86,7 @@ async def history_handler(e: MessageEvent):
     payments = await get_payments_by_user_id(e.object.user_id)
     if not payments:
         await e.edit_message(COMMANDS["balance"]["no_history"])
+        return
 
     text = "\n\n".join([await get_payment_text(p) for p in payments])
     await e.edit_message(text)
