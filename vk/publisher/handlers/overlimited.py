@@ -1,14 +1,22 @@
 from vkbottle.bot import Message
+
 from database.lots.utils import update_lot_data
-from templates import PUBLISH
-from ...states_groups.publisher import PublisherStates
-from ...keyboards import PUBLISHER
-from ...types.labeler import labeler
 from enums.moderation import LotStatusDB
+from templates import PUBLISH
+
+from ...keyboards import PUBLISHER
+from ...states_groups.publisher import PublisherStates
+from ...types.labeler import labeler
 
 
 @labeler.message(state=PublisherStates.OVERLIMITED_CHOICE)
 async def overlimited_handler(msg: Message):
+    if not msg.text or msg.text not in [
+        PUBLISHER["other_group"],
+        PUBLISHER["same_group"],
+    ]:
+        return
+
     lots = msg.state_peer.payload["lots"]
 
     if msg.text == PUBLISHER["other_group"]:
