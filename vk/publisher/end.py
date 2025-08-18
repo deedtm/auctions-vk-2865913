@@ -85,7 +85,7 @@ async def send_notifications(lot: Lot):
             lot,
             template=template,
             link=lot.bettor_link,
-            peer_id=lot.user_id,
+            peer_id=lot.last_bettor_id,
             bet=lot.last_bet,
         )
 
