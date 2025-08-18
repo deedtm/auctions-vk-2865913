@@ -8,6 +8,7 @@ from vkbottle_types.objects import MessagesMessageAttachment as Attachment
 from config.vk import USER_LOTS_LIMIT
 from database.lots.utils import add_lot, add_random_lots, get_lots_by_fields
 from database.users.utils import get_user
+from enums.moderation import LotStatusDB
 from templates import COMMANDS, ERRORS
 from types_.lot import Lot
 
@@ -30,6 +31,7 @@ async def auction_handler(msg: Message):
     lots = await get_lots_by_fields(
         group_id=group_id,
         user_id=msg.from_id,
+        moderation_status=LotStatusDB.PUBLISHED.value
     )
 
     if len(lots) >= USER_LOTS_LIMIT:
