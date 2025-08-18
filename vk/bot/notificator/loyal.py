@@ -58,3 +58,5 @@ async def notificate_loyal_users():
             for max_ind in range(0, len(ids), 100):
                 user_ids = ids[max_ind : max_ind + 100]
                 await send_notification(gid, ",".join(map(str, user_ids)), text)
+            await sleep(1)
+            

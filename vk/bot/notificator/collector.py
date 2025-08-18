@@ -58,6 +58,7 @@ async def collector_notificate():
     for user_id, overdue_data in lots.items():
         await _send_notification(user_id, overdue_data)
         notified.append(user_id)
+        await sleep(1)
 
 
 async def lots_text(overdue_data: dict[int, list[Lot]]):

@@ -73,6 +73,7 @@ async def post_lots():
     for lot in lots:
         await _post_lot(lot)
         posted.append(lot)
+        await sleep(1)
 
 
 async def filter_overlimited(lots: list[Lot]):

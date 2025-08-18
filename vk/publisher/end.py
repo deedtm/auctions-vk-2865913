@@ -39,6 +39,7 @@ async def end_auctions():
     delays = []
     for lot in lots:
         delays.append(await _end_lot(lot))
+        await sleep(1)
 
     delays = list(filter(lambda x: x is not None, delays))
     if delays:

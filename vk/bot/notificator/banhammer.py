@@ -33,6 +33,7 @@ async def ban():
 
     for id in users_ids:
         await _ban_user(id)
+        await sleep(1)
 
 
 async def _ban_user(user_id: int):
@@ -44,3 +45,4 @@ async def _ban_user(user_id: int):
             comment=BAN_COMMENT,
             comment_visible=1,
         )
+        await sleep(1)
