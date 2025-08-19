@@ -1,6 +1,7 @@
 from asyncio import sleep
 from random import randint
 from typing import Optional
+from vkbottle.exception_factory import VKAPIError
 
 from config.vk import AUCTIONS_EXTENSION, MAX_RATING_TO_DANGER
 from database.groups.utils import get_group
@@ -39,7 +40,7 @@ async def end_auctions():
     delays = []
     for lot in lots:
         delays.append(await _end_lot(lot))
-        await sleep(1)
+        await sleep(2.5)
 
     delays = list(filter(lambda x: x is not None, delays))
     if delays:
@@ -84,13 +85,13 @@ async def send_notifications(lot: Lot):
             "buyer",
             lot,
             template=template,
-            link=lot.bettor_link,
+            link=lot.user_link,
             peer_id=lot.last_bettor_id,
             bet=lot.last_bet,
         )
 
     seller_kwargs = {
-        "link": lot.user_link,
+        "link": lot.bettor_link,
         "kb": seller_notification_kb,
         "commission": lot.commission,
     }
@@ -113,7 +114,10 @@ async def _send_notification(
     hl = group_post_hl(lot.group_id, lot.post_id, lot.description)
     text = template.format(lot=hl, **template_kwargs)
     api = get_api(lot.group_id)
-    await api.messages.send(
-        peer_id=peer_id, message=text, random_id=randint(10**7, 10**8), keyboard=kb
-    )
+    try:
+        await api.messages.send(
+            peer_id=peer_id, message=text, random_id=randint(10**7, 10**8), keyboard=kb
+        )
+    except VKAPIError[901]:
+        logger.debug("Can't send message to user {peer_id}: no permission")
     # await state_dispenser.set(user_id, recipient + "_state", lot=lot)
