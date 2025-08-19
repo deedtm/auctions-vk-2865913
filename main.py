@@ -50,7 +50,7 @@ async def the_looping(logger):
 if __name__ == "__main__":
     logger = get_logger(__name__)
     root_logger = logging.getLogger()
-    root_logger.setLevel(logging.DEBUG)
+    root_logger.setLevel(logging.WARNING)
 
     # Добавляем обработчики к root logger (если их еще нет)
     if not root_logger.handlers:
