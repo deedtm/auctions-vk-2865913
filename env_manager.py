@@ -78,6 +78,25 @@ def set_terminal():
     console.print(success("Ключ и пароль терминала успешно установлены!"))
 
 
+def set_rucaptcha_token():
+    print()
+    console.print(header("Установка токена RuCaptcha"))
+    console.print(info(f"Введите API ключ из личного кабинета (переключитесь на кабинет {important('Заказчика')})"))
+    rucaptcha_token = console.input("Введите API ключ: ")
+    dotenv.set_key(".env", "RUCAPTCHA_TOKEN", rucaptcha_token, quote_mode="never")
+    console.print(success("Токен RuCaptcha успешно установлен!"))
+
+def set_proxy():
+    print()
+    console.print(header("Установка прокси"))
+    console.print(info("Введите данные для подключения к прокси-серверу"))
+    proxy_ip = console.input("Введите IP:PORT прокси (например 0.0.0.0:8080): ")
+    proxy_password = console.input("Введите пароль прокси: ")
+    dotenv.set_key(".env", "PROXY_IP", proxy_ip, quote_mode="never")
+    dotenv.set_key(".env", "PROXY_PASSWORD", proxy_password, quote_mode="never")
+    console.print(success("Прокси успешно установлен!"))
+
+
 def set_full_tokens():
     print()
     console.print(header("Полная установка токенов"))
@@ -95,6 +114,8 @@ def set_full_env():
     set_moderator_ids()
     set_admin_ids()
     set_terminal()
+    set_rucaptcha_token()
+    set_proxy() 
     console.print(success("Полная установка окружения завершена!"))
     main_menu()
 
@@ -134,14 +155,30 @@ def reset_terminal():
     dotenv.unset_key(".env", "SECRET_KEY")
     console.print(success("Ключ и пароль терминала успешно сброшены!"))
 
+def reset_rucaptcha_token():
+    print()
+    console.print(header("Сброс токена RuCaptcha"))
+    dotenv.unset_key(".env", "RUCAPTCHA_TOKEN")
+    console.print(success("Токен RuCaptcha успешно сброшен!"))
+    
+def reset_proxy():
+    print()
+    console.print(header("Сброс прокси"))
+    dotenv.unset_key(".env", "PROXY_IP")
+    dotenv.unset_key(".env", "PROXY_PASSWORD")
+    console.print(success("Прокси успешно сброшен!"))
+
 
 def reset_full_env():
     print()
     console.print(header("Полный сброс окружения"))
     reset_group_tokens()
+    reset_user_token()
     reset_moderator_ids()
     reset_admins_ids()
     reset_terminal()
+    reset_rucaptcha_token()
+    reset_proxy()
     console.print(success("Полный сброс окружения завершен!"))
     main_menu()
 
@@ -174,7 +211,9 @@ def setup_menu():
         console.print("[green]3. Установить айди модераторов[/green]")
         console.print("[green]4. Установить айди админов[/green]")
         console.print("[green]5. Установить терминал[/green]")
-        console.print("[white]6. Назад[/white]")
+        console.print("[green]6. Установить токен RuCaptcha[/green]")
+        console.print("[green]7. Установить прокси[/green]")
+        console.print("[white]8. Назад[/white]")
 
         choice = input("Выберите действие: ")
         print()
@@ -189,6 +228,10 @@ def setup_menu():
         elif choice == "5":
             set_terminal()
         elif choice == "6":
+            set_rucaptcha_token()
+        elif choice == "7":
+            set_proxy()
+        elif choice == "8":
             break
         else:
             console.print("[red]Неверный выбор[/red]")
@@ -202,7 +245,9 @@ def reset_menu():
         console.print("[green]3. Сбросить айди модераторов[/green]")
         console.print("[green]4. Сбросить айди админов[/green]")
         console.print("[green]5. Сбросить терминал[/green]")
-        console.print("[white]6. Назад[/white]")
+        console.print("[green]6. Сбросить токен RuCaptcha[/green]")
+        console.print("[green]7. Сбросить прокси[/green]")
+        console.print("[white]8. Назад[/white]")
 
         choice = input("Выберите действие: ")
         print()
@@ -216,6 +261,12 @@ def reset_menu():
             reset_admins_ids()
         elif choice == "5":
             reset_terminal()
+        elif choice == "6":
+            reset_rucaptcha_token()
+        elif choice == "7":
+            reset_proxy()
+        elif choice == "8":
+            break
         else:
             console.print("[red]Неверный выбор[/red]")
 

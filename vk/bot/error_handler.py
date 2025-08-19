@@ -1,37 +1,26 @@
-import os
 from asyncio import sleep
-from random import randint
 
 from vkbottle.exception_factory.base_exceptions import VKAPIError
+
+import captcha_api as captcha
 
 from ..publisher.config import groups_apis
 from .config import err_handler, logger
 
 
 async def vk_api_14_handler(e: VKAPIError):
-    apis = iter(groups_apis.values())
-    api = next(apis)
-
-    logger.warning("Captcha required! Using API to notify admins...")
-    peer_ids = list(map(int, os.getenv("ADMINS_IDS", "").split()))
-    redirect_uri = e.kwargs.get("redirect_uri")
-    for pid in peer_ids:
-        try:
-            await api.messages.send(
-                peer_id=pid,
-                random_id=randint(10**6, 10**7),
-                message=f"[КАПЧА]\n\n{redirect_uri}\n\n❗️  Обязательно обновите страницу после решения капчи",
-            )
-        except VKAPIError[901]:
-            api = next(apis)
-
-        except Exception as exc:
-            logger.error(
-                f"Failed to notify id{pid} - {exc.__class__.__name__}: {exc}\nCAPTCHA URI: {redirect_uri}"
-            )
-        await sleep(3)
-    logger.info('Notificated admins about captcha. Sleeping for 120 seconds')
-    await sleep(120)
+    logger.warning("Captcha required! Trying to solve...")
+    api = list(iter(groups_apis.values()))[0]
+    redirect_uri = e.kwargs.get('redirect_uri')
+    if not redirect_uri:
+        logger.error('Not found redirect_uri in captcha error object! Sleeping for 300 seconds...')
+        sleep(300)
+        return
+    result = await captcha.solve(api, redirect_uri)
+    solution_token = result.get('solution', {}).get('token')
+    with open('captcha_api/solution_tokens.txt', 'a') as f:
+        f.write(f'\n{result.get('createTime')}: {solution_token}')
+    logger.info(f'Solved captcha: -{result['cost']}₽')
 
 
 async def vk_api_9_handler(e: VKAPIError):
