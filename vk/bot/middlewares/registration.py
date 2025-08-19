@@ -8,7 +8,7 @@ from config.admin import ADMIN_ACCESS, MODERATOR_ACCESS
 from database.users.utils import add_user, get_user
 from templates import COMMANDS
 
-from ..config import state_dispenser
+from ..config import state_dispenser, err_handler
 from ..handlers.__utils import get_command
 
 STOP_LITERALS = get_command("stop")["literals"]
@@ -22,6 +22,7 @@ class RegistrationMiddleware(BaseMiddleware[Message]):
         self.moderators_ids = os.getenv("MODERATORS_IDS", "").split()
         self.admins_ids = os.getenv("ADMINS_IDS", "").split()
 
+    @err_handler.catch
     async def pre(self):
         if self.event.text[1:] in ["ping", "ing"]:
             self.send({"past_time": time.time()})
