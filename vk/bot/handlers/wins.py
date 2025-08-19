@@ -32,7 +32,7 @@ async def wins_handler(msg: Message):
     g = await get_group(lot.group_id)
     template = g.auctions_template
     user = await get_user(lot.user_id)
-    urgent, main, additional = await lot.as_user_review(user)
+    urgent, main, additional = await lot.as_user_review(user, for_bettor=True)
     text = template.format(URGENT=urgent, MAIN=main, ADDITIONAL=additional)
     await msg.answer(text, lot.photos, keyboard=swipe_kb("wins", 0, last_index))
     await state_dispenser.set(
@@ -53,7 +53,7 @@ async def edit_lot_msg(e: MessageEvent):
     g = await get_group(lot.group_id)
     template = g.auctions_template
     user = await get_user(lot.user_id)
-    urgent, main, additional = await lot.as_user_review(user)
+    urgent, main, additional = await lot.as_user_review(user, for_bettor=True)
     text = template.format(URGENT=urgent, MAIN=main, ADDITIONAL=additional)
     await e.edit_message(
         text, attachment=lot.photos, keyboard=swipe_kb("wins", offset, last_index)
