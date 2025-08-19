@@ -38,7 +38,7 @@ async def end_auctions():
         return DEFAULT_DELAY
 
     delays = []
-    lots_delay = min(0.5 * len(lots), 5)
+    lots_delay = min(len(lots), 10)
     for lot in lots:
         delays.append(await _end_lot(lot))
         await sleep(lots_delay)
