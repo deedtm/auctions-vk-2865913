@@ -52,7 +52,8 @@ async def edit_lot_msg(e: MessageEvent):
     lot = lots[offset]
     g = await get_group(lot.group_id)
     template = g.auctions_template
-    urgent, main, additional = lot.as_user_review()
+    user = await get_user(lot.user_id)
+    urgent, main, additional = await lot.as_user_review(user)
     text = template.format(URGENT=urgent, MAIN=main, ADDITIONAL=additional)
     await e.edit_message(
         text, attachment=lot.photos, keyboard=swipe_kb("wins", offset, last_index)
