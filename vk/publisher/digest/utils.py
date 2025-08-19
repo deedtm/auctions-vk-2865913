@@ -10,6 +10,8 @@ from ..utils import get_self_group, upload_photo
 
 BASE_PATH = "vk/publisher/digest/"
 CACHE_PATH = p.join(BASE_PATH, "cache")
+if not p.exists(CACHE_PATH):
+    os.makedirs(CACHE_PATH, exist_ok=True)
 
 
 def get_settings():
