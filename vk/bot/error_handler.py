@@ -30,6 +30,8 @@ async def vk_api_14_handler(e: VKAPIError):
                 f"Failed to notify id{pid} - {exc.__class__.__name__}: {exc}\nCAPTCHA URI: {redirect_uri}"
             )
         await sleep(3)
+    logger.info('Notificated admins about captcha. Sleeping for 120 seconds')
+    await sleep(120)
 
 
 async def vk_api_9_handler(e: VKAPIError):
