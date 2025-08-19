@@ -115,6 +115,8 @@ class Lot(Base):
                 additional_info.append(f"Владелец: {self.user_link}")
             if not for_bettor or for_admin:
                 additional_info.append(f"Победитель: {self.bettor_link}")
+        elif for_admin:
+            additional_info.append(f"Владелец: {self.user_link}")
 
         if for_admin:
             additional_info.append(
