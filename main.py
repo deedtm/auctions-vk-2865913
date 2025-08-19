@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from dotenv import load_dotenv
 
@@ -9,7 +10,7 @@ from vkbottle.tools import LoopWrapper
 
 from config.vk import LOOPING_INITIAL_DELAY
 from database.utils import init_schemas
-from log import get_logger
+from log import get_logger, file_formatter
 # from vk.bot import api as bot_api
 from vk.bot import bot as bot_bot
 from vk.publisher import apis as publisher_apis
@@ -48,6 +49,16 @@ async def the_looping(logger):
 
 if __name__ == "__main__":
     logger = get_logger(__name__)
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG)
+
+    # Добавляем обработчики к root logger (если их еще нет)
+    if not root_logger.handlers:
+        root_error_handler = logging.FileHandler("warnings.log", encoding="utf-8")
+        root_error_handler.setFormatter(file_formatter)
+        root_error_handler.setLevel(logging.WARNING)
+        root_logger.addHandler(root_error_handler)
+
     logger.info("Starting bot...")
 
     lw = LoopWrapper(
