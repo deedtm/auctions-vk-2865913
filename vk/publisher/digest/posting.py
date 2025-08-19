@@ -15,7 +15,7 @@ from ...hyperlinks import group_post_hl
 from ..config import apis, logger, user_api
 from .utils import cache_pic_for_all_groups, get_cached_pic, get_settings
 
-DEFAULT_DELAY = 180  # 86400
+DEFAULT_DELAY = 86400
 
 
 async def digest_wrapper():
