@@ -25,7 +25,7 @@ async def create_task(redirect_uri: str):
             "type": "VKCaptchaTask",
             "redirectUri": redirect_uri,
             "userAgent": ua,
-            "proxyType": "socksWAITING_RESULTS_DELAY",
+            "proxyType": "socks5",
             "proxyAddress": PROXY_IP,
             "proxyPort": PROXY_PORT,
             "proxyPassword": PROXY_PASSWORD,
