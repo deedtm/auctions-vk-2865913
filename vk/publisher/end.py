@@ -4,7 +4,7 @@ from typing import Optional
 
 from vkbottle.exception_factory import VKAPIError
 
-from config.vk import AUCTIONS_EXTENSION, MAX_RATING_TO_DANGER
+from config.vk import AUCTIONS_EXTENSION, MAX_RATING_TO_DANGER, AUCTIONS_CLOSING_INTERVAL
 from database.groups.utils import get_group
 from database.lots.models import Lot
 from database.lots.utils import (get_ended_lots, get_lots_by_fields,
@@ -41,6 +41,7 @@ async def close_auctions():
     for l in lots:
         await edit_post(l, close_comments=True)
         await update_lot_data(l.id, moderation_status=LotStatusDB.CLOSED.value)
+        await sleep(AUCTIONS_CLOSING_INTERVAL)
 
 
 async def end_wrapper():
