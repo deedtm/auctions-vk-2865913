@@ -56,7 +56,10 @@ class Lot(Base):
                 text = f"{int_to_emojis(self.last_bet)}  руб. — ПОСЛЕДНЯЯ СТАВКА"
             urgent_info.append(text)
 
-        if self.moderation_status in (LotStatusDB.ENDED.value, LotStatusDB.CLOSED.value):
+        if self.moderation_status in (
+            LotStatusDB.ENDED.value,
+            LotStatusDB.CLOSED.value,
+        ):
             urgent_info.insert(0, "")
             urgent_info.insert(0, "❗️ АУКЦИОН ЗАВЕРШЕН ❗️")
 
@@ -91,7 +94,10 @@ class Lot(Base):
         ]
         additional_info = []
 
-        is_ended = self.moderation_status == LotStatusDB.ENDED.value
+        is_ended = self.moderation_status in (
+            LotStatusDB.ENDED.value,
+            LotStatusDB.CLOSED.value,
+        )
 
         if self.last_bet:
             bet_info = "победная" if is_ended else "последняя"

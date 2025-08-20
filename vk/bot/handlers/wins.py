@@ -18,9 +18,13 @@ __literals = get_command("wins")["literals"]
 
 @labeler.message(CommandFilter(__literals))
 async def wins_handler(msg: Message):
-    lots = await get_lots_by_fields(
+    ended_lots = await get_lots_by_fields(
         last_bettor_id=msg.from_id, moderation_status=LotStatusDB.ENDED.value
     )
+    closed_lots = await get_lots_by_fields(
+        last_bettor_id=msg.from_id, moderation_status=LotStatusDB.CLOSED.value
+    )
+    lots = ended_lots + closed_lots
     if not lots:
         text = COMMANDS["wins"]["no_lots"]
         await msg.answer(text)

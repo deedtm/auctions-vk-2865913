@@ -480,7 +480,10 @@ async def get_user_win_lots(user_id: int) -> list[DBLot]:
     async for session in get_session():
         stmt = select(DBLot).where(
             DBLot.last_bettor_id == user_id,
-            DBLot.moderation_status == LotStatusDB.ENDED.value,
+            or_(
+                DBLot.moderation_status == LotStatusDB.ENDED.value,
+                DBLot.moderation_status == LotStatusDB.CLOSED.value
+            )
         )
         result = await session.execute(stmt)
         return result.scalars().all()
