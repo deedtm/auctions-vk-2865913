@@ -216,16 +216,4 @@ async def send_lot(msg: Message, lot: Optional[Lot] = None):
 async def confirmed_handler(msg: Message):
     await add_lot(msg.from_id, msg.state_peer.payload["lot"])
     await msg.answer(COMMANDS["auction"]["confirmed"])
-
-
-@labeler.message(lev="test_random")
-async def random_handler(msg: Message):
-    group = await msg.ctx_api.groups.get_by_id()
-    group_id = -group.groups[0].id
-    lot = (await add_random_lots(1, msg.from_id, group_id))[0]
-    user = await get_user(lot.user_id)
-    urgent, main = await lot.as_post(user)
-    await msg.answer(
-        COMMANDS["auction"]["random"].format("\n".join([urgent, main])),
-        attachments=lot.photos,
-    )
+    await state_dispenser.delete(msg.peer_id)
