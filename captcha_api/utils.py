@@ -25,7 +25,7 @@ async def create_task(redirect_uri: str):
             "type": "VKCaptchaTask",
             "redirectUri": redirect_uri,
             "userAgent": ua,
-            "proxyType": "socks5",
+            "proxyType": "socksWAITING_RESULTS_DELAY",
             "proxyAddress": PROXY_IP,
             "proxyPort": PROXY_PORT,
             "proxyPassword": PROXY_PASSWORD,
@@ -45,12 +45,12 @@ async def solve(redirect_uri: str):
     create_task_data = await create_task(redirect_uri)
     task_id = create_task_data.get('taskId', -1)
 
-    await sleep(5)
+    await sleep(WAITING_RESULTS_DELAY)
     result = await get_task_result(task_id)
 
     i = 1
     while result.get("status") == "processing":
-        await sleep(5)
+        await sleep(WAITING_RESULTS_DELAY)
         result = await get_task_result(task_id)
         i += 1
 
