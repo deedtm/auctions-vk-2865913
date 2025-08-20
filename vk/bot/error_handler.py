@@ -14,13 +14,16 @@ async def vk_api_14_handler(e: VKAPIError):
         logger.error('Not found redirect_uri in captcha error object! Sleeping for 300 seconds...')
         sleep(300)
         return
-    result = await captcha.solve(redirect_uri)
-    if result is None:
-        return
-    solution_token = result.get('solution', {}).get('token')
-    with open('captcha_api/solution_tokens.txt', 'a') as f:
-        f.write(f'\n{result.get('createTime')}: {solution_token}')
-    logger.info(f'Solved captcha: -{result['cost']}₽')
+    try:
+        result = await captcha.solve(redirect_uri)
+        if result is None:
+            return
+        solution_token = result.get('solution', {}).get('token')
+        with open('captcha_api/solution_tokens.txt', 'a') as f:
+            f.write(f'\n{result.get('createTime')}: {solution_token}')
+        logger.info(f'Solved captcha: -{result['cost']}₽')
+    except captcha.errors.CaptchaFailed as err:
+        logger.error(f"{err.description}: {err.error_id} {err.code}")
 
 
 async def vk_api_9_handler(e: VKAPIError):

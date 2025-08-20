@@ -32,6 +32,8 @@ async def create_task(redirect_uri: str):
         },
     }
     res = await post(CREATE_TASK_URL, data, headers={"User-Agent": ua})
+    if res["errorId"] != 0:
+        raise CaptchaFailed(**res)
     return res
 
 
@@ -43,7 +45,7 @@ async def get_task_result(task_id: int):
 
 async def solve(redirect_uri: str, try_: int = 1):
     if try_ > 100:
-        logger.warning('Captcha solving try exceeded 100. Stopping tries')
+        logger.warning("Captcha solving try exceeded 100. Stopping tries")
         return
     create_task_data = await create_task(redirect_uri)
     task_id = create_task_data.get("taskId", -1)
