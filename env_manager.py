@@ -2,7 +2,6 @@ import os
 
 import dotenv
 from rich.console import Console
-from rich.table import Table
 
 if not os.path.exists(".env"):
     with open(".env", "w") as f:
