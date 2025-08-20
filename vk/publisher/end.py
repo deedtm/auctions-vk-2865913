@@ -4,11 +4,14 @@ from typing import Optional
 
 from vkbottle.exception_factory import VKAPIError
 
-from config.vk import AUCTIONS_EXTENSION, MAX_RATING_TO_DANGER, AUCTIONS_CLOSING_INTERVAL
+from config.vk import (
+    AUCTIONS_CLOSING_INTERVAL,
+    AUCTIONS_EXTENSION,
+    MAX_RATING_TO_DANGER,
+)
 from database.groups.utils import get_group
 from database.lots.models import Lot
-from database.lots.utils import (get_ended_lots, get_lots_by_fields,
-                                 update_lot_data)
+from database.lots.utils import get_ended_lots, get_lots_by_fields, update_lot_data
 from database.users.utils import get_user
 from enums.moderation import LotStatusDB
 from templates import BETS
@@ -113,13 +116,12 @@ async def send_notifications(lot: Lot):
             bet=lot.last_bet,
         )
 
-    seller_kwargs = {
-        "link": lot.bettor_link,
-        "kb": seller_notification_kb,
-        "commission": lot.commission,
-    }
+    seller_kwargs = {}
     if lot.last_bet:
+        seller_kwargs["link"] = lot.bettor_link
         seller_kwargs["bet"] = lot.last_bet
+        seller_kwargs["commission"] = lot.commission
+        seller_kwargs["kb"] = seller_notification_kb
     else:
         seller_kwargs["template"] = BETS["lot_failed"]
     await _send_notification("seller", lot, lot.user_id, **seller_kwargs)
@@ -142,5 +144,5 @@ async def _send_notification(
             peer_id=peer_id, message=text, random_id=randint(10**7, 10**8), keyboard=kb
         )
     except VKAPIError[901]:
-        logger.debug("Can't send message to user {peer_id}: no permission")
+        logger.debug(f"Can't send message to user {peer_id}: no permission")
     # await state_dispenser.set(user_id, recipient + "_state", lot=lot)
