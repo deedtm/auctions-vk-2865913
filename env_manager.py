@@ -81,10 +81,15 @@ def set_terminal():
 def set_rucaptcha_token():
     print()
     console.print(header("Установка токена RuCaptcha"))
-    console.print(info(f"Введите API ключ из личного кабинета (переключитесь на кабинет {important('Заказчика')})"))
+    console.print(
+        info(
+            f"Введите API ключ из личного кабинета (переключитесь на кабинет {important('Заказчика')})"
+        )
+    )
     rucaptcha_token = console.input("Введите API ключ: ")
     dotenv.set_key(".env", "RUCAPTCHA_TOKEN", rucaptcha_token, quote_mode="never")
     console.print(success("Токен RuCaptcha успешно установлен!"))
+
 
 def set_proxy():
     print()
@@ -115,7 +120,7 @@ def set_full_env():
     set_admin_ids()
     set_terminal()
     set_rucaptcha_token()
-    set_proxy() 
+    set_proxy()
     console.print(success("Полная установка окружения завершена!"))
     main_menu()
 
@@ -155,12 +160,14 @@ def reset_terminal():
     dotenv.unset_key(".env", "SECRET_KEY")
     console.print(success("Ключ и пароль терминала успешно сброшены!"))
 
+
 def reset_rucaptcha_token():
     print()
     console.print(header("Сброс токена RuCaptcha"))
     dotenv.unset_key(".env", "RUCAPTCHA_TOKEN")
     console.print(success("Токен RuCaptcha успешно сброшен!"))
-    
+
+
 def reset_proxy():
     print()
     console.print(header("Сброс прокси"))

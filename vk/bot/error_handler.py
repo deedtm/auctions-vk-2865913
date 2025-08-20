@@ -4,19 +4,17 @@ from vkbottle.exception_factory.base_exceptions import VKAPIError
 
 import captcha_api as captcha
 
-from ..publisher.config import groups_apis
 from .config import err_handler, logger
 
 
 async def vk_api_14_handler(e: VKAPIError):
     logger.warning("Captcha required! Trying to solve...")
-    api = list(iter(groups_apis.values()))[0]
     redirect_uri = e.kwargs.get('redirect_uri')
     if not redirect_uri:
         logger.error('Not found redirect_uri in captcha error object! Sleeping for 300 seconds...')
         sleep(300)
         return
-    result = await captcha.solve(api, redirect_uri)
+    result = await captcha.solve(redirect_uri)
     solution_token = result.get('solution', {}).get('token')
     with open('captcha_api/solution_tokens.txt', 'a') as f:
         f.write(f'\n{result.get('createTime')}: {solution_token}')

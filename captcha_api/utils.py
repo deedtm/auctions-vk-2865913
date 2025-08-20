@@ -1,45 +1,63 @@
 from asyncio import sleep
 
+import aiohttp
 from fake_useragent import UserAgent
-from vkbottle import API
 
 from .config import *
 from .errors import *
+from .log import logger
 
 CREATE_TASK_URL = BASE_URL + "createTask"
 GET_TASK_RESULT_URL = BASE_URL + "getTaskResult"
 
 
-async def create_task(redirect_uri: str, api: API):
+async def post(url: str, json_data: dict, **session_kwargs):
+    async with aiohttp.ClientSession(**session_kwargs) as session:
+        async with session.post(url, json=json_data) as res:
+            return await res.json()
+
+
+async def create_task(redirect_uri: str):
+    ua = UserAgent(os=["Ubuntu"], platforms=["desktop"]).random
     data = {
         "clientKey": RUCAPTCHA_TOKEN,
         "task": {
             "type": "VKCaptchaTask",
             "redirectUri": redirect_uri,
-            "userAgent": UserAgent(os=["Ubuntu"], platforms=["desktop"]).random,
+            "userAgent": ua,
             "proxyType": "socks5",
             "proxyAddress": PROXY_IP,
             "proxyPort": PROXY_PORT,
             "proxyPassword": PROXY_PASSWORD,
         },
     }
-    return await api.http_client.request_json(CREATE_TASK_URL, "POST", data)
+    res = await post(CREATE_TASK_URL, data, headers={"User-Agent": ua})
+    return res
 
 
-async def get_task_result(api: API, task_id: int):
+async def get_task_result(task_id: int):
     data = {"clientKey": RUCAPTCHA_TOKEN, "taskId": task_id}
-    return await api.http_client.request_json(GET_TASK_RESULT_URL, "POST", data)
+    res = await post(GET_TASK_RESULT_URL, data)
+    return res
 
 
-async def solve(api: API, redirect_uri: str):
-    task_id = await create_task(redirect_uri, api)
+async def solve(redirect_uri: str):
+    create_task_data = await create_task(redirect_uri)
+    task_id = create_task_data.get('taskId', -1)
 
     await sleep(5)
-    result = await get_task_result(api, task_id)
+    result = await get_task_result(task_id)
 
+    i = 1
     while result.get("status") == "processing":
         await sleep(5)
-        result = await get_task_result(api, task_id)
+        result = await get_task_result(task_id)
+        i += 1
+
+    if result.get('errorId') == 12:
+        logger.info(f"{result['errorDescription']}. Trying again after 10 seconds...")
+        await sleep(10)
+        return await solve(redirect_uri)
 
     if result.get("status") == "ready":
         return result
