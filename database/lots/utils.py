@@ -141,9 +141,10 @@ async def get_ended_lots() -> list[DBLot]:
     async for session in get_session():
         now = int(time.time())
         is_ended = DBLot.moderation_status == LotStatusDB.ENDED.value
+        is_closed = DBLot.moderation_status == LotStatusDB.CLOSED.value
         is_outdated = DBLot.end_date < now
         is_redeemed = DBLot.moderation_status == LotStatusDB.REDEEMED.value
-        stmt = select(DBLot).where(~is_ended & (is_outdated | is_redeemed))
+        stmt = select(DBLot).where(~(is_ended | is_closed) & (is_outdated | is_redeemed))
         result = await session.execute(stmt)
         return result.scalars().all()
     return []
