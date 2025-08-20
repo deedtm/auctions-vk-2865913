@@ -44,6 +44,7 @@ async def close_auctions():
     for l in lots:
         await edit_post(l, close_comments=True)
         await update_lot_data(l.id, moderation_status=LotStatusDB.CLOSED.value)
+        logger.debug(f'Closed lot {l.id}')
         await sleep(AUCTIONS_CLOSING_INTERVAL)
 
 
