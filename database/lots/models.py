@@ -56,7 +56,7 @@ class Lot(Base):
                 text = f"{int_to_emojis(self.last_bet)}  руб. — ПОСЛЕДНЯЯ СТАВКА"
             urgent_info.append(text)
 
-        if self.moderation_status == LotStatusDB.ENDED.value:
+        if self.moderation_status in (LotStatusDB.ENDED.value, LotStatusDB.CLOSED.value):
             urgent_info.insert(0, "")
             urgent_info.insert(0, "❗️ АУКЦИОН ЗАВЕРШЕН ❗️")
 
@@ -115,8 +115,6 @@ class Lot(Base):
                 additional_info.append(f"Владелец: {self.user_link}")
             if not for_bettor or for_admin:
                 additional_info.append(f"Победитель: {self.bettor_link}")
-        elif for_admin:
-            additional_info.append(f"Владелец: {self.user_link}")
 
         if for_admin:
             additional_info.append(

@@ -10,7 +10,7 @@ from vkbottle.tools import LoopWrapper
 
 from config.vk import LOOPING_INITIAL_DELAY
 from database.utils import init_schemas
-from log import get_logger, file_formatter
+from log import file_formatter, get_logger
 # from vk.bot import api as bot_api
 from vk.bot import bot as bot_bot
 from vk.publisher import apis as publisher_apis
@@ -26,6 +26,7 @@ async def the_looping(logger):
             send_results_wrapper(),
             post_wrapper(),
             reset_posts_amounts_wrapper(),
+            close_wrapper(),
             end_wrapper(),
             collector_wrapper(),
             ban_wrapper(),

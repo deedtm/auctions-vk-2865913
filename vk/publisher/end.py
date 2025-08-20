@@ -1,12 +1,14 @@
 from asyncio import sleep
 from random import randint
 from typing import Optional
+
 from vkbottle.exception_factory import VKAPIError
 
 from config.vk import AUCTIONS_EXTENSION, MAX_RATING_TO_DANGER
 from database.groups.utils import get_group
 from database.lots.models import Lot
-from database.lots.utils import get_ended_lots, update_lot_data
+from database.lots.utils import (get_ended_lots, get_lots_by_fields,
+                                 update_lot_data)
 from database.users.utils import get_user
 from enums.moderation import LotStatusDB
 from templates import BETS
@@ -19,6 +21,26 @@ from .utils import edit_post
 
 _endings = {}
 DEFAULT_DELAY = 60
+
+
+async def close_wrapper():
+    while True:
+        try:
+            await close_auctions()
+            await sleep(DEFAULT_DELAY)
+        except Exception as e:
+            logger.error(f"close_wrapper: {e.__class__.__name__}: {e}")
+            return
+
+
+async def close_auctions():
+    lots = await get_lots_by_fields(moderation_status=LotStatusDB.ENDED.value)
+    if not lots:
+        return
+
+    for l in lots:
+        await edit_post(l, close_comments=True)
+        await update_lot_data(l.id, moderation_status=LotStatusDB.CLOSED.value)
 
 
 async def end_wrapper():
@@ -71,7 +93,6 @@ async def _end_lot(lot: Lot):
     else:
         lot.commission = group.commission_min
 
-    await edit_post(lot, close_comments=True)
     await update_lot_data(lot=lot)
     await send_notifications(lot)
 
