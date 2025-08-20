@@ -15,6 +15,8 @@ async def vk_api_14_handler(e: VKAPIError):
         sleep(300)
         return
     result = await captcha.solve(redirect_uri)
+    if result is None:
+        return
     solution_token = result.get('solution', {}).get('token')
     with open('captcha_api/solution_tokens.txt', 'a') as f:
         f.write(f'\n{result.get('createTime')}: {solution_token}')

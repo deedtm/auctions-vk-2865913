@@ -41,23 +41,27 @@ async def get_task_result(task_id: int):
     return res
 
 
-async def solve(redirect_uri: str):
+async def solve(redirect_uri: str, try_: int = 1):
+    if try_ > 100:
+        logger.warning('Captcha solving try exceeded 100. Stopping tries')
+        return
     create_task_data = await create_task(redirect_uri)
-    task_id = create_task_data.get('taskId', -1)
+    task_id = create_task_data.get("taskId", -1)
 
-    await sleep(WAITING_RESULTS_DELAY)
+    await sleep(WAITING_RESULT_DELAY)
     result = await get_task_result(task_id)
 
     i = 1
     while result.get("status") == "processing":
-        await sleep(WAITING_RESULTS_DELAY)
+        await sleep(WAITING_RESULT_DELAY)
         result = await get_task_result(task_id)
+        logger.info(f"{try_}.{i}. Captcha solving result: {result}")
         i += 1
 
-    if result.get('errorId') == 12:
+    if result.get("errorId") == 12:
         logger.info(f"{result['errorDescription']}. Trying again after 10 seconds...")
         await sleep(10)
-        return await solve(redirect_uri)
+        return await solve(redirect_uri, try_ + 1)
 
     if result.get("status") == "ready":
         return result
