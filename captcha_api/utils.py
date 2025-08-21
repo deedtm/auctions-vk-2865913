@@ -25,12 +25,14 @@ async def create_task(redirect_uri: str):
             "type": "VKCaptchaTask",
             "redirectUri": redirect_uri,
             "userAgent": ua,
-            "proxyType": "socks5",
+            "proxyType": PROXY_TYPE,
             "proxyAddress": PROXY_IP,
             "proxyPort": PROXY_PORT,
             "proxyPassword": PROXY_PASSWORD,
         },
     }
+    if PROXY_USERNAME:
+        data["task"]["proxyLogin"] = PROXY_USERNAME
     res = await post(CREATE_TASK_URL, data, headers={"User-Agent": ua})
     if res["errorId"] != 0:
         raise CaptchaFailed(**res)
