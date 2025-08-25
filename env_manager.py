@@ -103,6 +103,7 @@ def set_proxy():
         proxy_username = c.input("Введите имя пользователя прокси: ")
         dotenv.set_key(".env", "PROXY_USERNAME", proxy_username, quote_mode="never")
     proxy_password = c.input("Введите пароль прокси: ")
+    dotenv.set_key(".env", "PROXY_TYPE", proxy_type, quote_mode="never")
     dotenv.set_key(".env", "PROXY_IP", proxy_ip, quote_mode="never")
     dotenv.set_key(".env", "PROXY_PASSWORD", proxy_password, quote_mode="never")
     c.print(success("Прокси успешно установлен!"))
