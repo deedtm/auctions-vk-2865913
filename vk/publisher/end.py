@@ -95,8 +95,8 @@ async def _end_lot(lot: Lot):
         lot.commission = max(
             lot.last_bet * group.commission_percent // 100, group.commission_min
         )
-    else:
-        lot.commission = group.commission_min
+    # else:
+    #     lot.commission = group.commission_min
 
     await update_lot_data(lot=lot)
     await send_notifications(lot)
