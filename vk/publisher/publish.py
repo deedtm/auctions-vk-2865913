@@ -104,7 +104,7 @@ async def filter_overlimited(lots: list[Lot]):
 
     return list(filter(lambda x: x not in remove, lots))
 
-
+@err_handler.catch
 async def send_overlimited_notification(user_id: int, lots: list[Lot]):
     available_group = await get_available_group(lots[0].group_id, GROUP_LOTS_LIMIT)
     with_other_group = bool(available_group)
