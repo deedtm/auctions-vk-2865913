@@ -4,7 +4,7 @@ from vkbottle.bot import Message
 from vkbottle.exception_factory.base_exceptions import VKAPIError
 
 import captcha_api as captcha
-from database.lots import Lot
+from database.lots.models import Lot
 from templates import ERRORS
 
 from .config import err_handler, logger

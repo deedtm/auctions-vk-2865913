@@ -1,4 +1,4 @@
-from typing import Optional
+from asyncio import sleep
 
 from vkbottle.bot import Message
 
@@ -9,7 +9,7 @@ from t_api.utils import *
 from templates import ERRORS
 from templates import PAY as PAY_TMPL
 
-from ..keyboards.pay import update_kb
+# from ..keyboards.pay import update_kb
 from ..states_groups.pay import PaySG
 from ..types import MessageEvent, labeler
 from .config import SECRET_KEY, TERMINAL_KEY, state_dispenser
@@ -65,52 +65,73 @@ async def pay_link_handler(msg: Message):
         await msg.answer(text)
         return
 
-    text = template.format(money, payment.payment_url, "-")
-    await msg.answer(text, keyboard=update_kb)
+    text = template.format(money, payment.payment_url)
+    # await msg.answer(text, keyboard=update_kb)
+    await msg.answer(text)
 
     pl["payment"] = payment
     await state_dispenser.set(msg.peer_id, PaySG.EMPTY, **pl)
+    await pay_update_wrapper(msg.from_id, pl, msg)
 
 
-@labeler.callback_query({"pay": "update"})
-async def pay_update_handler(e: MessageEvent):
-    o = e.object
-    state_peer = await state_dispenser.get(o.peer_id)
-
-    if not state_peer:
-        text = ERRORS["failed_get_data"]
-        await e.edit_message(text, keyboard=None)
-        return
-
-    pl = state_peer.payload
-
+async def pay_update_wrapper(user_id: int, payload: dict, link_message: Message):
+    pl = payload
     payment = pl["payment"]
+    status, payment_state = await pay_update_status(payment)
+    while status not in status.end_statuses:
+        await sleep(3)
+        status, payment_state = await pay_update_status(payment)
+
+    lots_ids = [lot.id for lot in pl["lots"]] if "lots" in pl else None
+    await add_payment_from_response(user_id, payment_state, lots_ids)
+    await pl.get(f"on_{status.value.lower()}", pay_final)(link_message, pl)
+
+    api = link_message.ctx_api
+    await api.messages.delete(message_ids=str(link_message.id), delete_for_all=True)
+
+
+async def pay_update_status(payment):
     payment_state = await get_payment_state(payment, SECRET_KEY)
-    pl["payment_state"] = payment_state
-    status = payment_state.status
-
-    template = PAY_TMPL["link"]
-    text = template.format(
-        payment_state.amount // 100, payment.payment_url, status.value
-    )
-
-    is_end = status in status.end_statuses
-
-    kb = update_kb
-    if is_end:
-        kb = None
-        lots_ids = [lot.id for lot in pl["lots"]] if "lots" in pl else None
-        await add_payment_from_response(
-            o.user_id, payment_state, lots_ids
-        )
-        await pl.get(f"on_{status.value.lower()}", pay_final)(e, pl)
-
-    await e.edit_message(text=text, keyboard=kb)
+    return payment_state.status, payment_state
 
 
-async def pay_final(e: MessageEvent, payload: dict = None):
+# @labeler.callback_query({"pay": "update"})
+# async def pay_update_handler(e: MessageEvent):
+#     o = e.object
+#     state_peer = await state_dispenser.get(o.peer_id)
+
+#     if not state_peer:
+#         text = ERRORS["failed_get_data"]
+#         await e.edit_message(text, keyboard=None)
+#         return
+
+#     pl = state_peer.payload
+
+#     payment = pl["payment"]
+#     payment_state = await get_payment_state(payment, SECRET_KEY)
+#     pl["payment_state"] = payment_state
+#     status = payment_state.status
+
+#     template = PAY_TMPL["link"]
+#     text = template.format(
+#         payment_state.amount // 100, payment.payment_url, status.value
+#     )
+
+#     is_end = status in status.end_statuses
+
+#     kb = update_kb
+#     if is_end:
+#         kb = None
+#         lots_ids = [lot.id for lot in pl["lots"]] if "lots" in pl else None
+#         await add_payment_from_response(o.user_id, payment_state, lots_ids)
+#         await pl.get(f"on_{status.value.lower()}", pay_final)(e, pl)
+
+#     await e.edit_message(text=text, keyboard=kb)
+
+
+async def pay_final(msg: Message, payload: dict = None):
     payment: PaymentInitResponse = payload["payment"]
     payment_state: GetStateResponse = payload["payment_state"]
     template = PAY_TMPL[payment_state.status.value.lower()]
     text = template.format(payment.amount // 100)
-    await e.answer(text)
+    await msg.answer(text)

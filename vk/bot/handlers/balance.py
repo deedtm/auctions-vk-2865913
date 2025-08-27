@@ -43,14 +43,14 @@ async def top_up_handler(e: MessageEvent):
     await pay_input_handler(e, on_confirmed=topped_up)
 
 
-async def topped_up(e: MessageEvent, payload: dict = None):
+async def topped_up(msg: Message, payload: dict = None):
     money = payload["payment"].amount // 100
-    user = await get_user(e.object.user_id)
+    user = await get_user(msg.from_id)
     await update_user_data(user.user_id, balance=user.balance + money)
 
     text = COMMANDS["balance"]["success_payment"]
-    await e.answer(text)
-    await state_dispenser.delete(e.object.peer_id)
+    await msg.answer(text)
+    await state_dispenser.delete(msg.peer_id)
 
 
 async def get_lot_text(id: int):
