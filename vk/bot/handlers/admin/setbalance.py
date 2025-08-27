@@ -39,6 +39,11 @@ async def setbalance_handler(msg: Message):
         return
 
     user_db = await get_user(user.id)
+    if not user_db:
+        tmpl = ERRORS['no_user_in_db']
+        await msg.answer(tmpl)
+        return
+    
     await update_user_data(user.id, balance=new_balance)
     tmpl = ADMIN["setbalance"]["success"]
     text = tmpl.format(

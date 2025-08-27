@@ -13,5 +13,5 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 # api = API(VK_TOKEN)
 state_dispenser = BuiltinStateDispenser()
-err_handler = ErrorHandler()
+err_handler = ErrorHandler(redirect_arguments=True)
 logger = get_logger("bot")

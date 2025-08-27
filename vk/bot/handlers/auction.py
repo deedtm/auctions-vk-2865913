@@ -6,17 +6,17 @@ from vkbottle.bot import Message
 from vkbottle_types.objects import MessagesMessageAttachment as Attachment
 
 from config.vk import USER_LOTS_LIMIT
-from database.lots.utils import add_lot, add_random_lots, get_lots_by_fields
-from database.users.utils import get_user
+from database.lots.utils import add_lot, get_lots_by_fields
 from enums.moderation import LotStatusDB
 from templates import COMMANDS, ERRORS
 from types_.lot import Lot
 
+from ...errors import LotNotEnoughDataError
 from ...keyboards.auction import confirmation_kb, creation_methods_kb
 from ...states_groups.auction import AuctionCreating
 from ...types import MessageEvent, labeler
 from ...utils import get_self_group
-from ..config import state_dispenser
+from ..config import err_handler, state_dispenser
 from ..rules.command import CommandFilter
 from .__utils import get_command
 
@@ -45,6 +45,7 @@ async def auction_handler(msg: Message):
     )
 
 
+@err_handler.catch
 @labeler.callback_query({"auction": "cm:form"})
 async def form_callback(event: MessageEvent):
     await event.edit_message(COMMANDS["auction"]["form"])
@@ -115,7 +116,7 @@ async def poll_callback(event: MessageEvent):
         max_step=max_step,
     )
 
-
+@err_handler.catch
 @labeler.message(state=AuctionCreating.POLL_INPUT)
 async def poll_handler(msg: Message):
     payload = msg.state_peer.payload
@@ -169,6 +170,8 @@ async def get_form_lot(msg: Message):
 
     text = msg.text
     lines = text.split("\n")
+    if len(lines) < 8:
+        raise LotNotEnoughDataError(data=lines)
 
     results = []
     if not lines[2].isdigit():
@@ -197,8 +200,14 @@ async def get_form_lot(msg: Message):
 @labeler.message(state=AuctionCreating.FORM_INPUT)
 async def send_lot(msg: Message, lot: Optional[Lot] = None):
     if not lot:
-        lot = await get_form_lot(msg)
-        if not lot:
+        try:
+            lot = await get_form_lot(msg)
+            if not lot:
+                return
+        except LotNotEnoughDataError as e:
+            template = COMMANDS['auction']["not_enough_lot_data"]
+            text = template.format(len(e.data), 8, '\n'.join(e.data))
+            await msg.answer(text)
             return
 
     await state_dispenser.delete(msg.peer_id)

@@ -1,16 +1,19 @@
 from asyncio import sleep
 from random import randint
 
-from config.vk import (MODERATION_INTERVAL, RESULTS_INTERVAL,
-                       fake_moderation_duration)
+from config.vk import MODERATION_INTERVAL, RESULTS_INTERVAL, fake_moderation_duration
 from database.lots.models import Lot
-from database.lots.utils import (get_pending_lots, get_unsended_lots,
-                                 is_lot_sended, update_lot_data)
+from database.lots.utils import (
+    get_pending_lots,
+    get_unsended_lots,
+    is_lot_sended,
+    update_lot_data,
+)
 from enums.moderation import LotStatusDB, ModerationResult
 from templates import MODERATION
 
 from ...publisher.utils import get_api
-from ..config import MODERATORS_IDS, logger
+from ..config import MODERATORS_IDS, err_handler, logger
 
 
 async def moderation_wrapper():
@@ -82,6 +85,7 @@ async def send_results():
         await sleep(1)
 
 
+@err_handler.catch
 async def _send_result(lot: Lot):
     args = [lot.description]
     if lot.moderation_result == ModerationResult.REJECTED.value:

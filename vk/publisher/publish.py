@@ -24,11 +24,11 @@ from database.users.utils import get_user
 from enums.moderation import LotStatusDB
 from templates import PUBLISH
 
-from ..bot.config import state_dispenser
+from ..bot.config import err_handler, state_dispenser
 from ..hyperlinks import group_link, group_post_hl
 from ..keyboards.publisher import overlimit_kb
-from ..states_groups.publisher import PublisherStates
 from ..publisher.utils import get_api
+from ..states_groups.publisher import PublisherStates
 from .config import apis, logger, user_api
 
 
@@ -152,6 +152,7 @@ async def __upload_photos(lot: Lot, group_id: int):
     return photos
 
 
+@err_handler.catch
 async def _post_lot(lot: Lot):
     lot.publish_date = int(time.time())
     lot.end_date = get_end_date(lot.publish_date)
