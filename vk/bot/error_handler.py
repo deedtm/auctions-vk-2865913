@@ -35,8 +35,14 @@ async def vk_api_9_handler(msg: Message):
     await sleep(sleep_delay)
 
 
-async def vk_api_901_handler(lot: Lot):
-    logger.debug(f"Failed to send message to user {lot.user_id}")
+async def vk_api_901_handler(**kwargs):
+    user_id = None
+    if 'lot' in kwargs:
+        user_id = kwargs['lot'].user_id
+    if user_id:
+        logger.debug(f"Failed to send message to user {user_id}")
+    else:
+        logger.debug(f"Failed to send message to user (user_id not found, kwargs: {kwargs})")
 
 
 @err_handler.register_error_handler(VKAPIError)
@@ -46,6 +52,6 @@ async def vk_api_handler(e: VKAPIError, *wrapped_args, **wrapped_kwargs):
     elif e.code == 9:
         await vk_api_9_handler(**wrapped_kwargs)
     elif e.code == 901:
-        await vk_api_901_handler()
+        await vk_api_901_handler(**wrapped_kwargs)
     else:
         logger.error(f"VK API Error {e.code}: {e.error_msg}")
