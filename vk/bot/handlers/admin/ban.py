@@ -26,9 +26,10 @@ REQUIRED_ARGS = get_required_args(command_data)
 )
 async def ban_handler(msg: Message):
     _, args = separate_args(msg.text)
-    link, days = args[0], args[1]
+    link = args[0]
+    days = None if len(args) < 2 else args[1]
 
-    if not days.isdigit():
+    if days is not None and not days.isdigit():
         await msg.answer(ERRORS["not_int"])
         return
 
@@ -41,7 +42,9 @@ async def ban_handler(msg: Message):
         await msg.answer(ERRORS["not_found"])
         return
 
-    end_date = int(time.time()) + int(days) * 86400
+    end_date = None
+    if days:
+        end_date = int(time.time()) + int(days) * 86400
     group = await get_self_group(msg.ctx_api, False)
     try:
         await user_api.groups.ban(group_id=group.id, user_id=user.id, end_date=end_date)

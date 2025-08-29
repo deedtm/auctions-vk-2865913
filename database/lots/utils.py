@@ -313,7 +313,8 @@ async def update_lot_data(lot_id: int = None, lot: DBLot = None, **fields) -> bo
         )
         if result.rowcount:
             await session.commit()
-            logger.debug(f"Lot {lot_id} updated fields {list(fields.keys())}")
+            updated_fields = ', '.join([f"{k}={v}" for k, v in fields.items()])
+            logger.debug(f"Lot {lot_id} updated fields {updated_fields}")
             return True
         return False
 

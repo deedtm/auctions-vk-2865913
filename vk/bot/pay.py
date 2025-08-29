@@ -135,3 +135,4 @@ async def pay_final(msg: Message, payload: dict = None):
     template = PAY_TMPL[payment_state.status.value.lower()]
     text = template.format(payment.amount // 100)
     await msg.answer(text)
+    await state_dispenser.delete(msg.peer_id)

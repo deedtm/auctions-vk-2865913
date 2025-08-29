@@ -44,7 +44,7 @@ async def close_auctions():
     for l in lots:
         await edit_post(l, close_comments=True)
         await update_lot_data(l.id, moderation_status=LotStatusDB.CLOSED.value)
-        logger.debug(f'Closed lot {l.id}')
+        logger.debug(f"Closed lot {l.id}")
         await sleep(AUCTIONS_CLOSING_INTERVAL)
 
 
@@ -79,30 +79,35 @@ async def end_auctions():
 async def _end_lot(lot: Lot):
     global _endings
 
-    if lot.moderation_status != LotStatusDB.REDEEMED.value and lot.last_bet:
-        ending_unix = lot.end_date
-        if ending_unix - lot.last_bet_date <= AUCTIONS_EXTENSION:
-            _endings[lot.id] = ending_unix + AUCTIONS_EXTENSION
-            lot.end_date = _endings[lot.id]
-            await update_lot_data(lot.id, end_date=lot.end_date)
-            await edit_post(lot)
-            return AUCTIONS_EXTENSION
+    # if lot.moderation_status != LotStatusDB.REDEEMED.value and lot.last_bet:
+    #     ending_unix = lot.end_date
+    #     if ending_unix - lot.last_bet_date <= AUCTIONS_EXTENSION:
+    #         _endings[lot.id] = ending_unix + AUCTIONS_EXTENSION
+    #         lot.end_date = _endings[lot.id]
+    #         await update_lot_data(lot.id, end_date=lot.end_date)
+    #         await edit_post(lot)
+    #         return AUCTIONS_EXTENSION
 
     lot.moderation_status = LotStatusDB.ENDED.value
 
     group = await get_group(lot.group_id)
-    if lot.last_bet:
+    user = await get_user(lot.user_id)
+    has_commission = False
+    if lot.last_bet and not user.loyal:
+        has_commission = True
         lot.commission = max(
             lot.last_bet * group.commission_percent // 100, group.commission_min
         )
     # else:
     #     lot.commission = group.commission_min
 
-    await update_lot_data(lot=lot)
-    await send_notifications(lot)
+    await update_lot_data(
+        lot.id, moderation_status=lot.moderation_status, commission=lot.commission
+    )
+    await send_notifications(lot, has_commission)
 
 
-async def send_notifications(lot: Lot):
+async def send_notifications(lot: Lot, has_commission: bool):
     if lot.last_bet:
         template = BETS["buyer_notification"]
         seller = await get_user(lot.user_id)
@@ -121,7 +126,10 @@ async def send_notifications(lot: Lot):
     if lot.last_bet:
         seller_kwargs["link"] = lot.bettor_link
         seller_kwargs["bet"] = lot.last_bet
-        seller_kwargs["commission"] = lot.commission
+        if has_commission:
+            seller_kwargs["commission"] = lot.commission
+        else:
+            seller_kwargs["template"] = BETS["seller_notification_no_commission"]
         seller_kwargs["kb"] = seller_notification_kb
     else:
         seller_kwargs["template"] = BETS["lot_failed"]

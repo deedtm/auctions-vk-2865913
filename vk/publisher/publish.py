@@ -24,11 +24,10 @@ from database.users.utils import get_user
 from enums.moderation import LotStatusDB
 from templates import PUBLISH
 
-from ..bot.config import err_handler, state_dispenser
+from ..bot.config import err_handler
 from ..hyperlinks import group_link, group_post_hl
 from ..keyboards.publisher import overlimit_kb
 from ..publisher.utils import get_api
-from ..states_groups.publisher import PublisherStates
 from .config import apis, logger, user_api
 
 
@@ -88,7 +87,7 @@ async def filter_overlimited(lots: list[Lot]):
 
         if limits[lot.group_id] >= GROUP_LOTS_LIMIT:
             lot.moderation_status = LotStatusDB.OVERLIMITED.value
-            await update_lot_data(lot=lot)
+            await update_lot_data(lot.id, moderation_status=lot.moderation_status)
 
             if lot.user_id not in overlimited:
                 overlimited[lot.user_id] = []
@@ -124,12 +123,6 @@ async def send_overlimited_notification(user_id: int, lots: list[Lot]):
         random_id=randint(10**6, 10**7),
         message=text,
         keyboard=overlimit_kb(with_other_group),
-    )
-    await state_dispenser.set(
-        user_id,
-        PublisherStates.OVERLIMITED_CHOICE,
-        lots=lots,
-        available_group=available_group,
     )
 
 
