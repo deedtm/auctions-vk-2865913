@@ -16,6 +16,9 @@ async def create_payment(
     fail_url: Optional[str] = None,
     redirect_due_date: Optional[str] = None,
     data: Optional[dict] = None,
+    receipt: Optional[dict] = None,
+    shops: Optional[list] = None,
+    descriptor: Optional[str] = None,
 ):
     # data = data or {}
     # if not "OperationInitiatorType" in data:
@@ -31,7 +34,10 @@ async def create_payment(
         success_url=success_url,
         fail_url=fail_url,
         redirect_due_date=redirect_due_date,
-        data=data
+        data=data,
+        receipt=receipt,
+        shops=shops,
+        descriptor=descriptor,
     )
     res = await init(payment_init)
 

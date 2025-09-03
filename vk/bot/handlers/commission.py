@@ -119,11 +119,4 @@ async def lots_choice_handler(msg: Message):
     msg.state_peer.payload["lots"] = choosed_lots
 
     await pay_handler(msg)
-    msg.state_peer.payload["commission"] = commission
-    msg.state_peer.payload["lots"] = choosed_lots
-
-    await pay_handler(msg)
-    msg.state_peer.payload["commission"] = commission
-    msg.state_peer.payload["lots"] = choosed_lots
-
-    await pay_handler(msg)
+    
