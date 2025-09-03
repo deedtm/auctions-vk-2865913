@@ -64,8 +64,8 @@ async def wall_reply_new(event: GroupTypes.WallReplyNew):
     )
     if to_update_lot:
         await update_lot_data(lot.id, **update_kwargs)
-    # if to_update_post:
-    #     await edit_post(lot)
+    if to_update_post:
+        await edit_post(lot)
     if lot.last_bet_comment and last_bettor_text:
         await w.create_comment(
             owner_id=o.post_owner_id,
