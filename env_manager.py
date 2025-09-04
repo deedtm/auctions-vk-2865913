@@ -118,6 +118,28 @@ def set_full_tokens():
     main_menu()
 
 
+def set_receipts_data():
+    print()
+    c.print(header("Установка данных для чеков"))
+    c.print(info("Необходим либо адрес электронной почты, либо номер телефона"))
+    email = c.input(
+        f"Введите {important('адрес электронной почты')} или нажмите Enter для пропуска: "
+    )
+    if email:
+        dotenv.set_key(".env", "EMAIL", email, quote_mode="never")
+    phone_number = c.input(
+        f"Введите {important('номер телефона')} в интернациональном формате (например +7912345689) или нажмите Enter для пропуска: "
+    )
+    if phone_number:
+        dotenv.set_key(".env", "PHONE_NUMBER", phone_number, quote_mode="never")
+    if not email and not phone_number:
+        c.print(
+            "[red]Вы должны ввести либо адрес электронной почты, либо номер телефона![/red]"
+        )
+        return
+    c.print(success("Данные для чеков успешно установлены!"))
+
+
 def set_full_env():
     print()
     c.print(header("Полная установка окружения"))
@@ -229,7 +251,8 @@ def setup_menu():
         c.print("[green]5. Установить терминал[/green]")
         c.print("[green]6. Установить токен RuCaptcha[/green]")
         c.print("[green]7. Установить прокси[/green]")
-        c.print("[white]8. Назад[/white]")
+        c.print("[green]8. Установить данные для чеков[/green]")
+        c.print("[white]9. Назад[/white]")
 
         choice = input("Выберите действие: ")
         print()

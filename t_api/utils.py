@@ -16,7 +16,7 @@ async def create_payment(
     fail_url: Optional[str] = None,
     redirect_due_date: Optional[str] = None,
     data: Optional[dict] = None,
-    receipt: Optional[dict] = None,
+    receipt: Optional[ReceiptFFD105] = None,
     shops: Optional[list] = None,
     descriptor: Optional[str] = None,
 ):

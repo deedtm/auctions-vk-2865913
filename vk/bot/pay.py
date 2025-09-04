@@ -1,3 +1,4 @@
+import os
 from asyncio import sleep
 
 from vkbottle.bot import Message
@@ -45,7 +46,21 @@ async def pay_link_handler(msg: Message):
 
     template = PAY_TMPL["link"]
 
-    # payment_data = {"user_id": msg.from_id}
+    items = []
+    if "lots" in pl:
+        for l in pl["lots"]:
+            item = ReceiptItem(
+                l.description, l.price * 100, 1, "vat10", payment_object="payment"
+            )
+            items.append(item)
+    else:
+        item = ReceiptItem(
+            "Комиссия за лоты", money * 100, 1, "vat10", payment_object="payment"
+        )
+        items.append(item)
+
+    email, phone_number = os.getenv("EMAIL"), os.getenv("PHONE_NUMBER")
+    receipt = ReceiptFFD105(items, "osn", email=email, phone=phone_number)
     payment = await create_payment(
         TERMINAL_KEY,
         money,
@@ -55,7 +70,7 @@ async def pay_link_handler(msg: Message):
         success_url=SUCCESS_URL,
         fail_url=FAIL_URL,
         redirect_due_date=REDIRECT_DUE_DATE,
-        # data=payment_data,
+        receipt=receipt,
     )
 
     if not payment.success:
@@ -135,4 +150,6 @@ async def pay_final(msg: Message, payload: dict = None):
     template = PAY_TMPL[payment_state.status.value.lower()]
     text = template.format(payment.amount // 100)
     await msg.answer(text)
+    await state_dispenser.delete(msg.peer_id)
+    await state_dispenser.delete(msg.peer_id)
     await state_dispenser.delete(msg.peer_id)
