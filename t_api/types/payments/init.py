@@ -5,6 +5,7 @@ from typing import Optional
 
 from ...enums.payments import PaymentStatus
 from ..token import generate_token
+from .receipt import ReceiptFFD105
 
 
 @dataclass
@@ -22,7 +23,7 @@ class PaymentInit:
     fail_url: Optional[str] = None
     redirect_due_date: Optional[str] = None
     data: Optional[dict] = None
-    receipt: Optional[dict] = None
+    receipt: Optional[ReceiptFFD105] = None
     shops: Optional[list] = None
     descriptor: Optional[str] = None
 
@@ -52,7 +53,7 @@ class PaymentInit:
             "FailURL": self.fail_url,
             "RedirectDueDate": self.redirect_due_date,
             "DATA": self.data,
-            "Receipt": self.receipt,
+            "Receipt": self.receipt.to_dict(),
             "Shops": self.shops,
             "Descriptor": self.descriptor,
         }

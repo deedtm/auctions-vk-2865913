@@ -50,7 +50,7 @@ async def pay_link_handler(msg: Message):
     if "lots" in pl:
         for l in pl["lots"]:
             item = ReceiptItem(
-                l.description, l.price * 100, 1, "vat10", payment_object="payment"
+                l.description, l.commission * 100, 1, "vat10", payment_object="payment"
             )
             items.append(item)
     else:
