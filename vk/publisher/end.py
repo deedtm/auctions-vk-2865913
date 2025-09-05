@@ -65,10 +65,8 @@ async def end_auctions():
         return DEFAULT_DELAY
 
     delays = []
-    lots_delay = min(len(lots), 10)
     for lot in lots:
         delays.append(await _end_lot(lot))
-        await sleep(lots_delay)
 
     delays = list(filter(lambda x: x is not None, delays))
     if delays:
@@ -79,14 +77,14 @@ async def end_auctions():
 async def _end_lot(lot: Lot):
     global _endings
 
-    # if lot.moderation_status != LotStatusDB.REDEEMED.value and lot.last_bet:
-    #     ending_unix = lot.end_date
-    #     if ending_unix - lot.last_bet_date <= AUCTIONS_EXTENSION:
-    #         _endings[lot.id] = ending_unix + AUCTIONS_EXTENSION
-    #         lot.end_date = _endings[lot.id]
-    #         await update_lot_data(lot.id, end_date=lot.end_date)
-    #         await edit_post(lot)
-    #         return AUCTIONS_EXTENSION
+    if lot.moderation_status != LotStatusDB.REDEEMED.value and lot.last_bet:
+        ending_unix = lot.end_date
+        if ending_unix - lot.last_bet_date <= AUCTIONS_EXTENSION:
+            _endings[lot.id] = ending_unix + AUCTIONS_EXTENSION
+            lot.end_date = _endings[lot.id]
+            await update_lot_data(lot.id, end_date=lot.end_date)
+            await edit_post(lot)
+            return AUCTIONS_EXTENSION
 
     lot.moderation_status = LotStatusDB.ENDED.value
 
