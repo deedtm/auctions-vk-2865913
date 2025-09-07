@@ -11,4 +11,3 @@ class AccessFilter(ABCRule[Message]):
     async def check(self, event: Message) -> bool:
         user_vk = await event.get_user()
         return await is_enough_access(self.access_level, user_id=user_vk.id)
-    

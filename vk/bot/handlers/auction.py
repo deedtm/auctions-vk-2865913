@@ -7,6 +7,7 @@ from vkbottle_types.objects import MessagesMessageAttachment as Attachment
 
 from config.vk import USER_LOTS_LIMIT
 from database.lots.utils import add_lot, get_lots_by_fields
+from database.users.utils import get_user
 from enums.moderation import LotStatusDB
 from templates import COMMANDS, ERRORS
 from types_.lot import Lot
@@ -17,7 +18,7 @@ from ...states_groups.auction import AuctionCreating
 from ...types import MessageEvent, labeler
 from ...utils import get_self_group
 from ..config import err_handler, state_dispenser
-from ..rules.command import CommandFilter
+from ..rules import CommandFilter
 from .__utils import get_command
 
 __literals = get_command("auction")["literals"]
@@ -25,6 +26,12 @@ __literals = get_command("auction")["literals"]
 
 @labeler.message(CommandFilter(__literals))
 async def auction_handler(msg: Message):
+    user = await get_user(msg.from_id)
+    if user.access_level < 1:
+        text = ERRORS['not_enough_access']
+        await msg.answer(text)
+        return
+
     group_data = await msg.ctx_api.groups.get_by_id()
     group_id = -group_data.groups[0].id
 
