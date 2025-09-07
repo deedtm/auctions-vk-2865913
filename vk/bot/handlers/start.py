@@ -9,7 +9,9 @@ from .__utils import get_command
 __literals = get_command("start")["literals"]
 
 
-@labeler.message(text="Начать")
+@labeler.message(fuzzy="Начать")
+@labeler.message(fuzzy="Старт")
+@labeler.message(fuzzy="Привет")
 @labeler.message(CommandFilter(__literals))
 @labeler.message(UnregisteredFilter())
 async def start_handler(message: Message):

@@ -14,16 +14,21 @@ from ..log import logger
 from ..lots.models import Lot as DBLot
 
 
-async def get_all_lots(vk_ids: dict[int, list[int]] | None = None) -> list[DBLot]:
+async def get_all_lots_by_ids(
+    db_ids: list[int] | None = None, vk_ids: dict[int, list[int]] | None = None
+) -> list[DBLot]:
     """
-    Return all lots if no vk_ids provided.
+    Return all lots by db_ids or vk_ids.
     If vk_ids is given (mapping group_id to list of post_ids),
     return lots matching any (group_id == key AND post_id IN values) pair.
     """
-    async for session in get_session():
+    if not vk_ids and not db_ids:
+        return []
+
+    async for session in get_session():        
         stmt = select(DBLot)
+        conditions = []
         if vk_ids:
-            conditions = []
             for group_id, post_ids in vk_ids.items():
                 if post_ids:
                     conditions.append(
@@ -31,7 +36,10 @@ async def get_all_lots(vk_ids: dict[int, list[int]] | None = None) -> list[DBLot
                     )
                 else:
                     conditions.append(DBLot.group_id == group_id)
-            stmt = stmt.where(or_(*conditions))
+        if db_ids:
+            for i in db_ids:
+                conditions.append(DBLot.id == i)
+        stmt = stmt.where(or_(*conditions))
         result = await session.execute(stmt)
         return result.scalars().all()
     return []

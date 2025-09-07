@@ -45,7 +45,7 @@ async def ai_handler(msg: Message):
     template = g.auctions_template
     hl = group_post_hl(l.group_id, l.post_id, ADMIN["ai"]["link_placeholder"])
     user = await get_user(l.user_id)
-    urgent, main, additional = await l.as_user_review(user, additional_lines=[hl])
+    urgent, main, additional = await l.as_user_review(user, for_admin=True, additional_lines=[hl])
     text = template.format(URGENT=urgent, MAIN=main, ADDITIONAL=additional)
     await msg.answer(text, attachment=l.photos, keyboard=swipe_kb("ai", 0, last_index))
 
@@ -68,7 +68,7 @@ async def swipe_handler(e: MessageEvent):
     template = g.auctions_template
     hl = group_post_hl(l.group_id, l.post_id, ADMIN["ai"]["link_placeholder"])
     user = await get_user(l.user_id)
-    urgent, main, additional = await l.as_user_review(user, additional_lines=[hl])
+    urgent, main, additional = await l.as_user_review(user, for_admin=True, additional_lines=[hl])
     text = template.format(URGENT=urgent, MAIN=main, ADDITIONAL=additional)
     await e.edit_message(
         text, attachment=l.photos, keyboard=swipe_kb("ai", offset, last_index)
