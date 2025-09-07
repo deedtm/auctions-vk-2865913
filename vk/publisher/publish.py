@@ -34,7 +34,7 @@ from .config import apis, logger, user_api
 async def reset_posts_amounts_wrapper():
     now = datetime.now(TZ)
     delta = (
-        now.replace(day=now.day + 1, hour=0, minute=0, second=0, microsecond=0) - now
+        now.replace(day=now.day, hour=23, minute=0, second=0, microsecond=0) - now
     )
     delay = delta.total_seconds()
     await sleep(delay)

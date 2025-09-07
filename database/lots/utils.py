@@ -144,7 +144,9 @@ async def get_ended_lots() -> list[DBLot]:
         is_closed = DBLot.moderation_status == LotStatusDB.CLOSED.value
         is_outdated = DBLot.end_date < now
         is_redeemed = DBLot.moderation_status == LotStatusDB.REDEEMED.value
-        stmt = select(DBLot).where(~(is_ended | is_closed) & (is_outdated | is_redeemed))
+        stmt = select(DBLot).where(
+            ~(is_ended | is_closed) & (is_outdated | is_redeemed)
+        )
         result = await session.execute(stmt)
         return result.scalars().all()
     return []
@@ -313,7 +315,7 @@ async def update_lot_data(lot_id: int = None, lot: DBLot = None, **fields) -> bo
         )
         if result.rowcount:
             await session.commit()
-            updated_fields = ', '.join([f"{k}={v}" for k, v in fields.items()])
+            updated_fields = ", ".join([f"{k}={v}" for k, v in fields.items()])
             logger.debug(f"Lot {lot_id} updated fields {updated_fields}")
             return True
         return False
@@ -377,6 +379,9 @@ async def replace_moderation_status(old_status: str, new_status: str) -> int:
         )
         if result.rowcount:
             await session.commit()
+        logger.debug(
+            f"Replaced moderation_status from {old_status} to {new_status} for {result.rowcount or 0} lots"
+        )
         return result.rowcount or 0
 
 
@@ -484,8 +489,8 @@ async def get_user_win_lots(user_id: int) -> list[DBLot]:
             DBLot.last_bettor_id == user_id,
             or_(
                 DBLot.moderation_status == LotStatusDB.ENDED.value,
-                DBLot.moderation_status == LotStatusDB.CLOSED.value
-            )
+                DBLot.moderation_status == LotStatusDB.CLOSED.value,
+            ),
         )
         result = await session.execute(stmt)
         return result.scalars().all()
