@@ -4,7 +4,7 @@ from database.groups.utils import get_group
 from database.lots.models import Lot
 from database.lots.utils import get_lots_by_user
 from database.users.utils import get_user
-from templates import COMMANDS
+from templates import COMMANDS, ERRORS
 
 from ...keyboards.swipe import swipe_kb
 from ...states_groups import EmptySG
@@ -44,8 +44,12 @@ async def edit_lot_msg(e: MessageEvent):
     offset = int(pl["myauctions"].split(":")[-1])
 
     sp = await state_dispenser.get(e.object.peer_id)
-    lots = sp.payload["lots"]
-    last_index = sp.payload["last_index"]
+    try:
+        lots = sp.payload["lots"]
+        last_index = sp.payload["last_index"]
+    except AttributeError:
+        await e.edit_message(ERRORS['outdated'])
+        return
 
     lot = lots[offset]
     g = await get_group(lot.group_id)

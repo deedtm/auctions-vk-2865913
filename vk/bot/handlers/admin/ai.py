@@ -5,6 +5,7 @@ from database.groups.utils import get_group
 from database.lots.models import Lot
 from database.users.utils import get_user
 from templates import ADMIN_COMMANDS as ADMIN
+from templates import ERRORS
 
 from ....hyperlinks import group_post_hl
 from ....keyboards.swipe import swipe_kb
@@ -55,8 +56,12 @@ async def swipe_handler(e: MessageEvent):
     offset = int(pl["ai"].split(":")[-1])
 
     sp = await state_dispenser.get(e.object.peer_id)
-    lots = sp.payload["lots"]
-    last_index = sp.payload["last_index"]
+    try:
+        lots = sp.payload["lots"]
+        last_index = sp.payload["last_index"]
+    except AttributeError:
+        await e.edit_message(ERRORS["outdated"])
+        return
 
     l: Lot = lots[offset]
     g = await get_group(l.group_id)

@@ -113,8 +113,13 @@ async def swipe_handler(e: MessageEvent):
     offset = int(pl["check"].split(":")[-1])
 
     sp = await state_dispenser.get(e.object.peer_id)
-    users = sp.payload["users"]
-    last_index = sp.payload["last_index"]
+    try:
+        users = sp.payload["users"]
+        last_index = sp.payload["last_index"]
+    except AttributeError:
+        await e.edit_message(ERRORS['outdated'])
+        return
+
 
     user = users[offset]
     text = await user_text(user)
