@@ -51,7 +51,7 @@ class Lot(Base):
         ]
         if self.last_bet:
             if self.redemption_price and self.last_bet == self.redemption_price:
-                text = "💸  ЛОТ ВЫКУПЛЕН!"
+                text = f"💸  ЛОТ ВЫКУПЛЕН {self.end_date_formatted()}!"
             else:
                 text = f"{int_to_emojis(self.last_bet)}  руб. — ПОСЛЕДНЯЯ СТАВКА"
             urgent_info.append(text)
@@ -61,7 +61,7 @@ class Lot(Base):
             LotStatusDB.CLOSED.value,
         ):
             urgent_info.insert(0, "")
-            urgent_info.insert(0, "❗️ АУКЦИОН ЗАВЕРШЕН ❗️")
+            urgent_info.insert(0, f"❗️ АУКЦИОН ЗАВЕРШЕН {self.end_date_formatted()} ❗️")
 
         if self.redemption_price:
             main_info.append(f"Цена выкупа: {self.redemption_price} руб.")
