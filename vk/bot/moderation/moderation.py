@@ -6,7 +6,7 @@ from database.lots.models import Lot
 from database.lots.utils import (
     get_pending_lots,
     get_unsended_lots,
-    is_lot_sended,
+    get_lots_by_fields,
     update_lot_data,
 )
 from enums.moderation import LotStatusDB, ModerationResult
@@ -39,24 +39,26 @@ async def _send_to_moderator(pending: list[Lot], user_id: int):
     # send message with keyboard
 
     ### FAKE MODERATION ###
+    ### REMOVE ALL NEXT LINES WHEN ADDING MODERATION ###
     await sleep(fake_moderation_duration())
+    
     for lot in pending:
+        db_lot = await get_lots_by_fields(id=lot.id)
+        if db_lot and db_lot[0].moderation_status != LotStatusDB.PENDING.value:
+            return
         await _set_result(lot)
-    ### ############### ###
+    #######################
 
 
 # handler of moderator's decision by keyboard
 async def _set_result(lot: Lot):
     # result depends on the decision
     result = ModerationResult.APPROVED.value  # or ModerationResult.REJECTED.value
-
-    await update_lot_data(
-        lot.id,
-        moderation_result=result,
-    )
-
-    if await is_lot_sended(lot.id):
-        return
+  
+    # await update_lot_data(
+    #     lot.id,
+    #     moderation_result=result,
+    # )
 
     response = "ok"  # == message.text
 

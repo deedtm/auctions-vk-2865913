@@ -53,7 +53,6 @@ if __name__ == "__main__":
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.WARNING)
 
-    # Добавляем обработчики к root logger (если их еще нет)
     if not root_logger.handlers:
         root_error_handler = logging.FileHandler("warnings.log", encoding="utf-8")
         root_error_handler.setFormatter(file_formatter)
