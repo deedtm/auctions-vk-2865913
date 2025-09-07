@@ -29,13 +29,13 @@ async def vk_api_14_handler(e: VKAPIError):
         logger.error(f"{err.description}: {err.error_id} {err.code}")
 
 
-async def vk_api_9_handler(**kwargs):
+async def vk_api_9_handler(*args, **kwargs):
     sleep_delay = 120
     msg = kwargs.get('msg', kwargs.get('message'))
     if msg:
         await msg.answer(ERRORS["flood_control"].format(sleep_delay))
     else:
-        logger.warning(f'No message found in kwargs for vk api 9 error. Given kwargs: {kwargs}')
+        logger.warning(f'No message found in kwargs for vk api 9 error. Given kwargs: {kwargs}. Given args: {args}')
     await sleep(sleep_delay)
 
 
@@ -54,7 +54,7 @@ async def vk_api_handler(e: VKAPIError, *wrapped_args, **wrapped_kwargs):
     if e.code == 14:
         await vk_api_14_handler(e)
     elif e.code == 9:
-        await vk_api_9_handler(**wrapped_kwargs)
+        await vk_api_9_handler(*wrapped_args, **wrapped_kwargs)
     elif e.code == 901:
         await vk_api_901_handler(**wrapped_kwargs)
     else:
