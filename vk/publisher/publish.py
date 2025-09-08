@@ -87,7 +87,7 @@ async def filter_overlimited(lots: list[Lot]):
 
         if limits[lot.group_id] >= GROUP_LOTS_LIMIT:
             lot.moderation_status = LotStatusDB.OVERLIMITED.value
-            await update_lot_data(lot.id, moderation_status=lot.moderation_status)
+            await update_lot_data(lot.id, moderation_status=LotStatusDB.OVERLIMITED.value)
 
             if lot.user_id not in overlimited:
                 overlimited[lot.user_id] = []
