@@ -1,5 +1,6 @@
 from asyncio import sleep
 
+from vkbottle import API
 from vkbottle.bot import Message
 from vkbottle.exception_factory.base_exceptions import VKAPIError
 
@@ -11,7 +12,7 @@ from .config import err_handler, logger
 
 
 async def vk_api_14_handler(e: VKAPIError):
-    logger.debug("Captcha required! Trying to solve...")
+    # logger.debug("Captcha required! Trying to solve...")
     redirect_uri = e.kwargs.get("redirect_uri")
     if not redirect_uri:
         logger.error(
@@ -31,22 +32,27 @@ async def vk_api_14_handler(e: VKAPIError):
 
 async def vk_api_9_handler(*args, **kwargs):
     sleep_delay = 120
-    msg = kwargs.get('msg', kwargs.get('message'))
-    if msg:
-        await msg.answer(ERRORS["flood_control"].format(sleep_delay))
+    if args:
+        o, api = args[1]["object"], args[2]
+        text = ERRORS["flood_control"].format(sleep_delay)
+        await api.messages.send(message=text, peer_id=o["peer_id"])
     else:
-        logger.warning(f'No message found in kwargs for vk api 9 error. Given kwargs: {kwargs}. Given args: {args}')
+        logger.warning(
+            f"Not found api in args for vk api 9 error. Given kwargs: {kwargs}. Given args: {args}"
+        )
     await sleep(sleep_delay)
 
 
 async def vk_api_901_handler(**kwargs):
     user_id = None
-    if 'lot' in kwargs:
-        user_id = kwargs['lot'].user_id
+    if "lot" in kwargs:
+        user_id = kwargs["lot"].user_id
     if user_id:
         logger.debug(f"Failed to send message to user {user_id}")
     else:
-        logger.debug(f"Failed to send message to user (user_id not found, kwargs: {kwargs})")
+        logger.debug(
+            f"Failed to send message to user (user_id not found, kwargs: {kwargs})"
+        )
 
 
 @err_handler.register_error_handler(VKAPIError)
