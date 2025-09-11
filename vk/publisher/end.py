@@ -42,10 +42,14 @@ async def close_auctions():
         return
 
     for l in lots:
-        await edit_post(l, close_comments=True)
-        await update_lot_data(l.id, moderation_status=LotStatusDB.CLOSED.value)
-        logger.debug(f"Closed lot {l.id}")
+        res = await edit_post(l, close_comments=True)
+        if res:
+            await update_lot_data(l.id, moderation_status=LotStatusDB.CLOSED.value)
+            logger.debug(f"Closed lot {l.id}")
+        else:
+            logger.debug(f"Failed to close lot {l.id}, skipping")
         await sleep(AUCTIONS_CLOSING_INTERVAL)
+
 
 
 async def end_wrapper():
@@ -64,7 +68,7 @@ async def end_auctions():
     if not lots:
         return DEFAULT_DELAY
 
-    delays = []
+    delays = [DEFAULT_DELAY]
     for lot in lots:
         delays.append(await _end_lot(lot))
 

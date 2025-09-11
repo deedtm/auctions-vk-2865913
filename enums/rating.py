@@ -11,4 +11,3 @@ def get_name(rating: int):
             condition += f' <= {r[1]}'
         if eval(condition):
             return name
-        

@@ -38,6 +38,7 @@ async def edit_post(lot: Lot, **kwargs):
         attachments=lot.user_photos,
         **kwargs,
     )
+    return True
 
 
 async def upload_photo(path: str, group_id: int, api: API = user_api):
