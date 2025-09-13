@@ -55,11 +55,16 @@ async def close_auctions():
             logger.debug(f"Failed to close lot {l.id}, skipping")
         await sleep(AUCTIONS_CLOSING_INTERVAL)
 
+    failed_files = 0
+    
     for l in successful:
         paths = l.photos_paths.split(',')
         for p in paths:
-            os.remove(p)
-    logger.debug(f"Removed photos from {len(successful)} lots")
+            try:
+                os.remove(p)
+            except FileNotFoundError:
+                failed_files += 1
+    logger.debug(f"Removed photos from {len(successful)} lots (and not found {failed_files} photos)")
     
 
 async def end_wrapper():
