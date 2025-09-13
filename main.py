@@ -23,7 +23,7 @@ async def the_looping(logger):
     try:
         tasks = [
             moderation_wrapper(),
-            send_results_wrapper(),
+            # send_results_wrapper(),
             post_wrapper(),
             reset_posts_amounts_wrapper(),
             close_wrapper(),
