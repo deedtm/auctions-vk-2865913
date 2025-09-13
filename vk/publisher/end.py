@@ -1,4 +1,6 @@
+import os
 from asyncio import sleep
+from datetime import datetime
 from random import randint
 from typing import Optional
 
@@ -9,6 +11,7 @@ from config.vk import (
     AUCTIONS_EXTENSION,
     MAX_RATING_TO_DANGER,
 )
+from config.time import TZ
 from database.groups.utils import get_group
 from database.lots.models import Lot
 from database.lots.utils import get_ended_lots, get_lots_by_fields, update_lot_data
@@ -22,7 +25,6 @@ from ..publisher.utils import get_api
 from .config import logger
 from .utils import edit_post
 
-_endings = {}
 DEFAULT_DELAY = 60
 
 
@@ -41,16 +43,24 @@ async def close_auctions():
     if not lots:
         return
 
+    successful = []
+
     for l in lots:
         res = await edit_post(l, close_comments=True)
         if res:
             await update_lot_data(l.id, moderation_status=LotStatusDB.CLOSED.value)
+            successful.append(l)
             logger.debug(f"Closed lot {l.id}")
         else:
             logger.debug(f"Failed to close lot {l.id}, skipping")
         await sleep(AUCTIONS_CLOSING_INTERVAL)
 
-
+    for l in successful:
+        paths = l.photos_paths.split(',')
+        for p in paths:
+            os.remove(p)
+    logger.debug(f"Removed photos from {len(successful)} lots")
+    
 
 async def end_wrapper():
     delay = DEFAULT_DELAY
@@ -79,13 +89,11 @@ async def end_auctions():
 
 
 async def _end_lot(lot: Lot):
-    global _endings
-
     if lot.moderation_status != LotStatusDB.REDEEMED.value and lot.last_bet:
         ending_unix = lot.end_date
         if ending_unix - lot.last_bet_date <= AUCTIONS_EXTENSION:
-            _endings[lot.id] = ending_unix + AUCTIONS_EXTENSION
-            lot.end_date = _endings[lot.id]
+            new_end_date = int(datetime.now(TZ).timestamp()) + AUCTIONS_EXTENSION
+            lot.end_date = new_end_date
             await update_lot_data(lot.id, end_date=lot.end_date)
             await edit_post(lot)
             return AUCTIONS_EXTENSION

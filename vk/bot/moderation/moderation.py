@@ -84,7 +84,6 @@ async def send_results():
     lots = await get_unsended_lots()
     for lot in lots:
         await _send_result(lot)
-        await sleep(1)
 
 
 @err_handler.catch

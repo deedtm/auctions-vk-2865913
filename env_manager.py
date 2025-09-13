@@ -128,7 +128,7 @@ def set_receipts_data():
     if email:
         dotenv.set_key(".env", "EMAIL", email, quote_mode="never")
     phone_number = c.input(
-        f"Введите {important('номер телефона')} в интернациональном формате (например +7912345689) или нажмите Enter для пропуска: "
+        f"Введите {important('номер телефона')} в интернациональном формате (например +7912345678) или нажмите Enter для пропуска: "
     )
     if phone_number:
         dotenv.set_key(".env", "PHONE_NUMBER", phone_number, quote_mode="never")
