@@ -92,7 +92,8 @@ async def get_posts_amount(group_id: int) -> int | None:
 async def get_waterfalls(group_id: int) -> list[int] | None:
     """Return the group's waterfalls field or None"""
     group = await get_group(group_id)
-    return list(map(int, group.waterfalls.split(","))) if group.waterfalls else None
+    if group and group.waterfalls:
+        return list(map(int, group.waterfalls.split(",")))
 
 
 async def get_available_group(group_id: int, posts_limit: int) -> DBGroup | None:
