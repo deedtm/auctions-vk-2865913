@@ -1,5 +1,5 @@
 from asyncio import sleep
-
+from random import randint
 from vkbottle import API
 from vkbottle.bot import Message
 from vkbottle.exception_factory.base_exceptions import VKAPIError
@@ -35,7 +35,7 @@ async def vk_api_9_handler(*args, **kwargs):
     if args:
         o, api = args[1]["object"], args[2]
         text = ERRORS["flood_control"].format(sleep_delay)
-        await api.messages.send(message=text, peer_id=o["peer_id"])
+        await api.messages.send(message=text, peer_id=o["peer_id"], random_id=randint(10**6, 10**8))
     else:
         logger.warning(
             f"Not found api in args for vk api 9 error. Given kwargs: {kwargs}. Given args: {args}"

@@ -68,11 +68,14 @@ async def post_lots():
 
     lots = await filter_overlimited(lots)
 
-    posted = []
+    posted = {l.group_id: 0 for l in lots}
     for lot in lots:
         await _post_lot(lot)
-        posted.append(lot)
+        posted[lot.group_id] += 1
         await sleep(1)
+
+    for group_id, amount in posted.items():
+        await set_posts_amount(group_id, amount)
 
 
 async def filter_overlimited(lots: list[Lot]):
@@ -94,9 +97,6 @@ async def filter_overlimited(lots: list[Lot]):
             overlimited[lot.user_id].append(lot)
 
             remove.append(lot)
-
-    for group_id, amount in limits.items():
-        await set_posts_amount(group_id, amount)
 
     for uid, lots in overlimited.items():
         await send_overlimited_notification(uid, lots)

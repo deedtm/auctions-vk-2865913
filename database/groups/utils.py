@@ -125,7 +125,8 @@ async def update_group_data(group_id: int | None = None, id: int | None = None, 
             await session.commit()
             key = "id" if id is not None else "group_id"
             val = id if id is not None else group_id
-            logger.debug(f"Group updated by {key}={val}, fields={list(fields.keys())}")
+            updated_fields = ", ".join([f"{k}={v}" for k, v in fields.items()])
+            logger.debug(f"Group by {key}={val} updated fields {updated_fields}")
             return True
         return False
 

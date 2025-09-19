@@ -9,5 +9,6 @@ from . import (
     setbalance,
     setloyal,
     unban,
-    record
+    record,
+    publishoverlimit
 )
