@@ -64,4 +64,4 @@ async def vk_api_handler(e: VKAPIError, *wrapped_args, **wrapped_kwargs):
     elif e.code == 901:
         await vk_api_901_handler(**wrapped_kwargs)
     else:
-        logger.error(f"VK API Error {e.code}: {e.error_msg}")
+        logger.error(f"VK API Error {e.code}: {e.error_msg}; {wrapped_kwargs=}; {wrapped_args=}")
