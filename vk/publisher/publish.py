@@ -68,8 +68,11 @@ async def post_lots():
 
     lots = await filter_overlimited(lots)
 
-    posted = {l.group_id: 0 for l in lots}
+    posted = {l.group_id: (await get_group(l.group_id)).posts_amount for l in lots}
     for lot in lots:
+        if posted[lot.group_id] >= GROUP_LOTS_LIMIT:
+            logger.debug(f'Skipping publishing lot {lot.id} because of posts_amount >= {GROUP_LOTS_LIMIT}')
+            continue
         await _post_lot(lot)
         posted[lot.group_id] += 1
         await sleep(1)
