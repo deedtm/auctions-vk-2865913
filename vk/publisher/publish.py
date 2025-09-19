@@ -73,8 +73,8 @@ async def post_lots():
         if posted[lot.group_id] >= GROUP_LOTS_LIMIT:
             logger.debug(f'Skipping publishing lot {lot.id} because of posts_amount >= {GROUP_LOTS_LIMIT}')
             continue
-        await _post_lot(lot)
-        posted[lot.group_id] += 1
+        result = await _post_lot(lot)
+        posted[lot.group_id] += int(result or 0)
         await sleep(1)
 
     for group_id, amount in posted.items():
@@ -181,6 +181,7 @@ async def _post_lot(lot: Lot):
         await bot_api.messages.send(
             peer_id=lot.user_id, random_id=randint(10**6, 10**7), message=text
         )
+        return True
 
 
 def get_end_date(publish_date: float):
