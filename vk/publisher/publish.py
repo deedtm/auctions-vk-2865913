@@ -141,7 +141,7 @@ async def __upload_photos(lot: Lot, group_id: int):
             photo = await uploader.upload(path, group_id=-group_id)
             photos.append(photo)
         except Exception as e:
-            print(f"Error uploading photo {path}: {e}")
+            logger.debug(f"Error uploading photo {path}:{e.__class__.__name__}: {e}")
             continue
         await sleep(0.5)  # To avoid hitting API limits
 
