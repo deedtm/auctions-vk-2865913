@@ -80,7 +80,10 @@ async def success_payment(
 
     if add_rating:
         user = await get_user(lots[0].user_id)
-        await update_user_data(user.user_id, rating=user.rating + len(lots))
+        fields = {"rating": user.rating + len(lots)}
+        if user.access_level < 1:
+            fields['access_level'] = 1
+        await update_user_data(user.user_id, **fields)
 
 
 @labeler.message(state=CommissionSG.PAY_CHOICE, text=KB_TEXT["pay_partially"])
