@@ -10,5 +10,5 @@
     {"literals": ["digest"], "description": "настройки дайджеста", "access": 3},
     {"literals": ["record"], "description": "выгрузка должников в Excel", "access": 2},
     {"literals": ["aucs"], "args": ["[ссылка]"], "description": "выгрузка аукционов в Excel (без аргумента выгрузятся аукционы данной группы)", "access": 2},
-    {"literals": ["publishoverlimit"], "description": "опубликовать посты из очереди в ближайшее время"}
+    {"literals": ["publishoverlimit"], "description": "опубликовать посты из очереди в ближайшее время", "access": 3}
 ]
