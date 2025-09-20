@@ -22,6 +22,8 @@ async def overlimited_handler(e: MessageEvent):
 
     if pl["overlimited"] == "other_group":
         ag = await get_available_group(e.group_id, GROUP_LOTS_LIMIT)
+        if not ag:
+            return
         fields = {
             "group_id": ag.group_id,
             "moderation_status": LotStatusDB.MODERATED.value,
