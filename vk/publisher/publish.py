@@ -7,12 +7,19 @@ from vkbottle import PhotoWallUploader
 
 from config.time import TZ
 from config.vk import AUCTIONS_ENDING_TIME, GROUP_LOTS_LIMIT, POSTING_INTERVAL
-from database.groups.utils import (get_available_group, get_group,
-                                   get_posts_amount, reset_all_posts_amount,
-                                   set_posts_amount)
+from database.groups.utils import (
+    get_available_group,
+    get_group,
+    get_posts_amount,
+    reset_all_posts_amount,
+    set_posts_amount,
+)
 from database.lots.models import Lot
-from database.lots.utils import (get_unsended_lots, replace_moderation_status,
-                                 update_lot_data)
+from database.lots.utils import (
+    get_unsended_lots,
+    replace_moderation_status,
+    update_lot_data,
+)
 from database.users.utils import get_user
 from enums.moderation import LotStatusDB
 from templates import PUBLISH
@@ -141,7 +148,7 @@ async def __upload_photos(lot: Lot, group_id: int):
             logger.error(f"Error uploading photo {path}: {e.__class__.__name__}: {e}")
             lot.moderation_status = LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
             await update_lot_data(
-                lot.id, moderation_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD
+                lot.id, moderation_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
             )
             break
         await sleep(0.5)  # To avoid hitting API limits
@@ -152,7 +159,7 @@ async def __upload_photos(lot: Lot, group_id: int):
 
 
 async def send_failed_photo_upload_notification(lot: Lot):
-    tmpl = PUBLISH['failed_upload_photo']
+    tmpl = PUBLISH["failed_upload_photo"]
     text = tmpl.format(lot.description)
     await send_notification(lot.group_id, lot.user_id, text)
 
