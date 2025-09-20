@@ -1,4 +1,5 @@
 import os
+from time import time_ns
 from typing import Optional
 
 import aiohttp
@@ -28,7 +29,7 @@ __literals = get_command("auction")["literals"]
 async def auction_handler(msg: Message):
     user = await get_user(msg.from_id)
     if user.access_level < 1:
-        text = ERRORS['not_enough_access']
+        text = ERRORS["not_enough_access"]
         await msg.answer(text)
         return
 
@@ -38,7 +39,7 @@ async def auction_handler(msg: Message):
     lots = await get_lots_by_fields(
         group_id=group_id,
         user_id=msg.from_id,
-        moderation_status=LotStatusDB.PUBLISHED.value
+        moderation_status=LotStatusDB.PUBLISHED.value,
     )
 
     if len(lots) >= USER_LOTS_LIMIT:
@@ -70,7 +71,7 @@ async def save_photo(url: str, photo_id: int):
     temp_dir = "temp"
     os.makedirs(temp_dir, exist_ok=True)
 
-    filepath = f"{temp_dir}/{photo_id}.{ext}"
+    filepath = f"{temp_dir}/{photo_id}_{time_ns()}.{ext}"
     with open(filepath, "wb") as f:
         f.write(data)
 
@@ -88,8 +89,7 @@ async def get_attachments(msg: Message):
     photos = list(filter(lambda x: x.photo, attachments))
     paths = []
     for a in photos:
-        url = a.photo.orig_photo.url
-        filepath = await save_photo(url, a.photo.id)
+        filepath = await save_photo(a.photo.orig_photo.url, a.photo.id)
         paths.append(filepath)
 
     return attachments, paths
@@ -123,6 +123,7 @@ async def poll_callback(event: MessageEvent):
         max_step=max_step,
     )
 
+
 @err_handler.catch
 @labeler.message(state=AuctionCreating.POLL_INPUT)
 async def poll_handler(msg: Message):
@@ -138,6 +139,9 @@ async def poll_handler(msg: Message):
         msg_attachments = msg.attachments
         if list(filter(lambda x: x.photo, msg_attachments)):
             attachments, photos_paths = await get_attachments(msg)
+            if not (attachments and photos_paths):
+                await msg.answer(ERRORS["no_attachments"])
+                return
         else:
             await msg.answer(ERRORS["no_attachments"])
             return
@@ -212,8 +216,8 @@ async def send_lot(msg: Message, lot: Optional[Lot] = None):
             if not lot:
                 return
         except LotNotEnoughDataError as e:
-            template = COMMANDS['auction']["not_enough_lot_data"]
-            text = template.format(len(e.data), 8, '\n'.join(e.data))
+            template = COMMANDS["auction"]["not_enough_lot_data"]
+            text = template.format(len(e.data), 8, "\n".join(e.data))
             await msg.answer(text)
             return
 

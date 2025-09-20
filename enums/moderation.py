@@ -11,6 +11,7 @@ class LotStatusDB(Enum):
     OVERLIMITED = "overlimited"
     WAITING_LIMIT = "waiting_limit"
     MOVED = "moved"
+    FAILED_USER_PHOTO_UPLOAD = "failed_user_photo_upload"
 
     def __str__(self):
         return self.value
@@ -26,6 +27,7 @@ class LotStatusUser(Enum):
     overlimited = "превышен лимит постов в выбранной группе"
     waiting_limit = "ожидает публикации в выбранную группу (был превышен лимит постов)"
     moved = "перенесен в другую группу"
+    failed_user_photo_upload = "не удалось использовать фото для публикации"
 
 
 class ModerationResult(Enum):

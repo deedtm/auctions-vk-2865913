@@ -7,24 +7,18 @@ from vkbottle import PhotoWallUploader
 
 from config.time import TZ
 from config.vk import AUCTIONS_ENDING_TIME, GROUP_LOTS_LIMIT, POSTING_INTERVAL
-from database.groups.utils import (
-    get_available_group,
-    get_group,
-    get_posts_amount,
-    reset_all_posts_amount,
-    set_posts_amount,
-)
+from database.groups.utils import (get_available_group, get_group,
+                                   get_posts_amount, reset_all_posts_amount,
+                                   set_posts_amount)
 from database.lots.models import Lot
-from database.lots.utils import (
-    get_unsended_lots,
-    replace_moderation_status,
-    update_lot_data,
-)
+from database.lots.utils import (get_unsended_lots, replace_moderation_status,
+                                 update_lot_data)
 from database.users.utils import get_user
 from enums.moderation import LotStatusDB
 from templates import PUBLISH
 
-from ..bot.config import err_handler
+from ..bot.config import err_handler, state_dispenser
+from ..bot.notificator.utils import send_notification
 from ..hyperlinks import group_link, group_post_hl
 from ..keyboards.publisher import overlimit_kb
 from ..publisher.utils import get_api
@@ -33,9 +27,7 @@ from .config import apis, logger, user_api
 
 async def reset_posts_amounts_wrapper():
     now = datetime.now(TZ)
-    delta = (
-        now.replace(day=now.day, hour=23, minute=0, second=0, microsecond=0) - now
-    )
+    delta = now.replace(day=now.day, hour=23, minute=0, second=0, microsecond=0) - now
     delay = delta.total_seconds()
     await sleep(delay)
 
@@ -71,7 +63,9 @@ async def post_lots():
     posted = {l.group_id: (await get_group(l.group_id)).posts_amount for l in lots}
     for lot in lots:
         if posted[lot.group_id] >= GROUP_LOTS_LIMIT:
-            logger.debug(f'Skipping publishing lot {lot.id} because of posts_amount >= {GROUP_LOTS_LIMIT}')
+            logger.debug(
+                f"Skipping publishing lot {lot.id} because of posts_amount >= {GROUP_LOTS_LIMIT}"
+            )
             continue
         result = await _post_lot(lot)
         posted[lot.group_id] += int(result or 0)
@@ -93,7 +87,9 @@ async def filter_overlimited(lots: list[Lot]):
 
         if limits[lot.group_id] >= GROUP_LOTS_LIMIT:
             lot.moderation_status = LotStatusDB.OVERLIMITED.value
-            await update_lot_data(lot.id, moderation_status=LotStatusDB.OVERLIMITED.value)
+            await update_lot_data(
+                lot.id, moderation_status=LotStatusDB.OVERLIMITED.value
+            )
 
             if lot.user_id not in overlimited:
                 overlimited[lot.user_id] = []
@@ -105,6 +101,7 @@ async def filter_overlimited(lots: list[Lot]):
         await send_overlimited_notification(uid, lots)
 
     return list(filter(lambda x: x not in remove, lots))
+
 
 @err_handler.catch
 async def send_overlimited_notification(user_id: int, lots: list[Lot]):
@@ -141,11 +138,23 @@ async def __upload_photos(lot: Lot, group_id: int):
             photo = await uploader.upload(path, group_id=-group_id)
             photos.append(photo)
         except Exception as e:
-            logger.debug(f"Error uploading photo {path}:{e.__class__.__name__}: {e}")
-            continue
+            logger.error(f"Error uploading photo {path}: {e.__class__.__name__}: {e}")
+            lot.moderation_status = LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
+            await update_lot_data(
+                lot.id, moderation_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD
+            )
+            break
         await sleep(0.5)  # To avoid hitting API limits
+    else:
+        return photos
 
-    return photos
+    return False
+
+
+async def send_failed_photo_upload_notification(lot: Lot):
+    tmpl = PUBLISH['failed_upload_photo']
+    text = tmpl.format(lot.description)
+    await send_notification(lot.group_id, lot.user_id, text)
 
 
 @err_handler.catch
@@ -153,6 +162,9 @@ async def _post_lot(lot: Lot):
     lot.publish_date = int(time.time())
     lot.end_date = get_end_date(lot.publish_date)
     attachments = await __upload_photos(lot, lot.group_id)
+    if not attachments:
+        return
+
     user = await get_user(lot.user_id)
     urgent, main = await lot.as_post(user)
     group = await get_group(lot.group_id)
