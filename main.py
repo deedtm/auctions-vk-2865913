@@ -61,7 +61,7 @@ if __name__ == "__main__":
     root_logger.addHandler(root_handler)
 
     logger = get_logger(__name__)
-    logger.info("Starting bot...")
+    logger.critical("Starting bot...")
 
     lw = LoopWrapper(
         on_startup=[init_schemas(), init_groups()], tasks=[the_looping(logger)]
