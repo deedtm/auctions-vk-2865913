@@ -116,17 +116,19 @@ class Lot(Base):
             main_info.append("Доставка за счет продавца")
         main_info.append(f"Дата окончания: {self.end_date_formatted() or ''}")
 
-        if is_ended and self.last_bet:
-            if for_bettor or for_admin:
-                additional_info.append(f"Владелец: {self.user_link}")
-            if not for_bettor or for_admin:
-                additional_info.append(f"Победитель: {self.bettor_link}")
-
         if for_admin:
+            additional_info.append(f"Владелец: {self.user_link}")
+            if self.last_bet:
+                additional_info.append(f"Победитель: {self.bettor_link}")
             additional_info.append(
                 f"Ответ модерации: {self.moderation_response or '—'}"
             )
             additional_info.append(f"Комиссия: {self.commission or '—'} руб.")
+        elif is_ended and self.last_bet:
+            if for_bettor:
+                additional_info.append(f"Владелец: {self.user_link}")
+            if not for_bettor:
+                additional_info.append(f"Победитель: {self.bettor_link}")
 
         additional_info.extend(additional_lines or [])
 
