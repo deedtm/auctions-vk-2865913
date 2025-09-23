@@ -74,7 +74,7 @@ async def success_payment(
 ):
     user, commission = payload["user"], payload['commission']
     tmpl = COMMANDS["commission"]["success_payment"]
-    text = tmpl.format(user.balance, user.balance - commission)
+    text = tmpl.format(user.balance, max(0, user.balance - commission))
     await e.answer(text)
 
     lots = payload.get("lots", payload.get("all_lots"))
