@@ -113,6 +113,7 @@ async def filter_overlimited(lots: list[Lot]):
 @err_handler.catch
 async def send_overlimited_notification(user_id: int, lots: list[Lot]):
     available_group = await get_available_group(lots[0].group_id, GROUP_LOTS_LIMIT)
+    gid = None
     with_other_group = bool(available_group)
 
     tmpl_raw = PUBLISH["overlimited"]
@@ -120,7 +121,8 @@ async def send_overlimited_notification(user_id: int, lots: list[Lot]):
 
     args = [", ".join([lot.description for lot in lots])]
     if with_other_group:
-        args.append(group_link(available_group.group_id))
+        gid = available_group.group_id
+        args.append(group_link(gid))
 
     text = tmpl.format(*args)
 
@@ -129,7 +131,7 @@ async def send_overlimited_notification(user_id: int, lots: list[Lot]):
         peer_id=user_id,
         random_id=randint(10**6, 10**7),
         message=text,
-        keyboard=overlimit_kb(with_other_group),
+        keyboard=overlimit_kb(with_other_group, gid),
     )
 
 

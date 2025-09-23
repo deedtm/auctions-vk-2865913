@@ -1,5 +1,3 @@
-from config.vk import GROUP_LOTS_LIMIT
-from database.groups.utils import get_available_group
 from database.lots.utils import get_lots_by_fields, update_lot_data
 from enums.moderation import LotStatusDB
 from templates import PUBLISH
@@ -20,16 +18,14 @@ async def overlimited_handler(e: MessageEvent):
     if not lots:
         return
 
-    if pl["overlimited"] == "other_group":
-        ag = await get_available_group(e.group_id, GROUP_LOTS_LIMIT)
-        if not ag:
-            return
+    if pl["overlimited"] == "same_group":
+        fields = {"moderation_status": LotStatusDB.WAITING_LIMIT.value}
+    else:
+        available_group_id = pl["overlimited"].split("_")[0]
         fields = {
-            "group_id": ag.group_id,
+            "group_id": int(available_group_id),
             "moderation_status": LotStatusDB.MODERATED.value,
         }
-    elif pl["overlimited"] == "same_group":
-        fields = {"moderation_status": LotStatusDB.WAITING_LIMIT.value}
 
     for lot in lots:
         await update_lot_data(lot.id, **fields)
