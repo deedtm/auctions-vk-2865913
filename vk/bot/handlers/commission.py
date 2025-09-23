@@ -53,6 +53,7 @@ async def pay_handler(msg: Message):
     pl = msg.state_peer.payload
     commission = pl["commission"]
     user = await get_user(user_id=msg.from_id)
+    pl["user"] = user
     is_loyal_active = user.loyal and datetime.now(TZ).timestamp() < user.loyal
 
     if user.balance >= commission or is_loyal_active:
@@ -71,7 +72,9 @@ async def pay_handler(msg: Message):
 async def success_payment(
     e: MessageEvent, payload: dict = None, add_rating: bool = True
 ):
-    text = COMMANDS["commission"]["success_payment"]
+    user, commission = payload["user"], payload['commission']
+    tmpl = COMMANDS["commission"]["success_payment"]
+    text = tmpl.format(user.balance, user.balance - commission)
     await e.answer(text)
 
     lots = payload.get("lots", payload.get("all_lots"))
@@ -82,7 +85,7 @@ async def success_payment(
         user = await get_user(lots[0].user_id)
         fields = {"rating": user.rating + len(lots)}
         if user.access_level < 1:
-            fields['access_level'] = 1
+            fields["access_level"] = 1
         await update_user_data(user.user_id, **fields)
 
 
@@ -122,4 +125,3 @@ async def lots_choice_handler(msg: Message):
     msg.state_peer.payload["lots"] = choosed_lots
 
     await pay_handler(msg)
-    
