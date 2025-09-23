@@ -11,6 +11,7 @@ from vkbottle.tools import LoopWrapper
 from config.vk import LOOPING_INITIAL_DELAY
 from database.utils import init_schemas
 from log import file_formatter, get_logger
+
 # from vk.bot import api as bot_api
 from vk.bot import bot as bot_bot
 from vk.publisher import apis as publisher_apis
@@ -49,16 +50,17 @@ async def the_looping(logger):
 
 
 if __name__ == "__main__":
-    logger = get_logger(__name__)
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.WARNING)
 
-    if not root_logger.handlers:
-        root_error_handler = logging.FileHandler("warnings.log", encoding="utf-8")
-        root_error_handler.setFormatter(file_formatter)
-        root_error_handler.setLevel(logging.WARNING)
-        root_logger.addHandler(root_error_handler)
+    root_logger.handlers.clear()
 
+    root_handler = logging.FileHandler("libs.log", encoding="utf-8")
+    root_handler.setFormatter(file_formatter)
+    root_handler.setLevel(logging.WARNING)
+    root_logger.addHandler(root_handler)
+
+    logger = get_logger(__name__)
     logger.info("Starting bot...")
 
     lw = LoopWrapper(
