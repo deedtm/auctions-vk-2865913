@@ -18,19 +18,32 @@ async def wall_reply_new(event: GroupTypes.WallReplyNew):
     o = event.object
     w = event.ctx_api.wall
 
-    bet = int(o.text)
     lot = await get_lot(group_id=o.post_owner_id, post_id=o.post_id)
+
+    if "выкуп" in o.text.lower():
+        splitted = o.text.split()
+        add_price = 0
+        if len(splitted) > 1 and splitted[1]:
+            add_price = splitted[1][splitted[1].startswith("+") :]
+            if add_price.isdigit():
+                add_price = int(add_price)
+        bet = lot.redemption_price + add_price
+    else:
+        try:
+            bet = int(o.text)
+        except ValueError:
+            return
 
     if lot.moderation_status == LotStatusDB.REDEEMED.value:
         await w.create_comment(
             owner_id=o.post_owner_id,
             post_id=o.post_id,
-            message=BETS['already_redeemed'],
+            message=BETS["already_redeemed"],
             reply_to_comment=o.id,
         )
         return
 
-    mn_start_bet = lot.start_price # + lot.step_price
+    mn_start_bet = lot.start_price  # + lot.step_price
     mn_new_bet = max((lot.last_bet or 0) + lot.step_price, mn_start_bet)
 
     last_bettor_text = None
