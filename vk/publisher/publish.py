@@ -2,6 +2,7 @@ import time
 from asyncio import sleep
 from datetime import datetime, timedelta
 from random import randint
+from traceback import format_exc
 
 from vkbottle import PhotoWallUploader
 
@@ -134,6 +135,7 @@ async def send_overlimited_notification(user_id: int, lots: list[Lot]):
         keyboard=overlimit_kb(with_other_group, gid),
     )
 
+
 @err_handler.catch
 async def __upload_photos(lot: Lot, group_id: int):
     if not lot.photos_paths:
@@ -147,11 +149,12 @@ async def __upload_photos(lot: Lot, group_id: int):
             photo = await uploader.upload(path, group_id=-group_id)
             photos.append(photo)
         except Exception as e:
-            logger.error(f"Error uploading photo {path}: {e.__class__.__name__}: {e}")
+            logger.error(f"Error uploading photo {path}: {e.__class__.__name__}\n{format_exc(e)}")
             lot.moderation_status = LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
             await update_lot_data(
                 lot.id, moderation_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
             )
+            await send_failed_photo_upload_notification(lot)
             break
         await sleep(1)  # To avoid hitting API limits
     else:
