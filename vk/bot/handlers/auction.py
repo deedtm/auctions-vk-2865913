@@ -1,5 +1,6 @@
 import os
 from time import time_ns
+from traceback import format_exc
 from typing import Optional
 
 import aiohttp
@@ -18,7 +19,7 @@ from ...keyboards.auction import confirmation_kb, creation_methods_kb
 from ...states_groups.auction import AuctionCreating
 from ...types import MessageEvent, labeler
 from ...utils import get_self_group
-from ..config import err_handler, state_dispenser
+from ..config import err_handler, logger, state_dispenser
 from ..rules import CommandFilter
 from .__utils import get_command
 
@@ -89,9 +90,11 @@ async def get_attachments(msg: Message):
     photos = list(filter(lambda x: x.photo, attachments))
     paths = []
     for a in photos:
-        filepath = await save_photo(a.photo.orig_photo.url, a.photo.id)
-        paths.append(filepath)
-
+        try:
+            filepath = await save_photo(a.photo.orig_photo.url, a.photo.id)
+            paths.append(filepath)
+        except Exception as e:
+            logger.error(f'Failed to save photo {a.photo.id}\n{format_exc(e)}')
     return attachments, paths
 
 

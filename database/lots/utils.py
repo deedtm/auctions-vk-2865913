@@ -25,7 +25,7 @@ async def get_all_lots_by_ids(
     if not vk_ids and not db_ids:
         return []
 
-    async for session in get_session():        
+    async for session in get_session():
         stmt = select(DBLot)
         conditions = []
         if vk_ids:
@@ -166,25 +166,26 @@ async def add_lot(user_id: int, lot: Lot) -> DBLot:
         # Convert photos list to comma-separated string for database storage
         photos_str = ",".join(lot.photos) if lot.photos else None
         photos_paths_str = ",".join(lot.photos_paths) if lot.photos_paths else None
-
-        new_lot = DBLot(
-            user_id=user_id,
-            group_id=lot.group_id,
-            description=lot.description,
-            condition=lot.condition,
-            photos=photos_str,
-            photos_paths=photos_paths_str,
-            start_price=lot.start_price,
-            step_price=lot.step_price,
-            payment_method=lot.payment_method,
-            city=lot.city,
-            redemption_price=lot.redemption_price,
-            delivery_price=lot.delivery_price,
-        )
+        fields = {
+            "user_id": user_id,
+            "group_id": lot.group_id,
+            "description": lot.description,
+            "condition": lot.condition,
+            "photos": photos_str,
+            "photos_paths": photos_paths_str,
+            "start_price": lot.start_price,
+            "step_price": lot.step_price,
+            "payment_method": lot.payment_method,
+            "city": lot.city,
+            "redemption_price": lot.redemption_price,
+            "delivery_price": lot.delivery_price,
+        }
+        new_lot = DBLot(**fields)
         session.add(new_lot)
         await session.commit()
         await session.refresh(new_lot)
-        logger.debug(f"Lot {new_lot.id} added as ORM record")
+        fields_str = "; ".join([f"{k}={v}" for k, v in fields.items()])
+        logger.debug(f"Lot {new_lot.id} added as ORM record with fields {fields_str}")
         return new_lot
 
 

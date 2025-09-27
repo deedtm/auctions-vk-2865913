@@ -20,14 +20,8 @@ async def wall_reply_new(event: GroupTypes.WallReplyNew):
 
     lot = await get_lot(group_id=o.post_owner_id, post_id=o.post_id)
 
-    if "выкуп" in o.text.lower():
-        splitted = o.text.split()
-        add_price = 0
-        if len(splitted) > 1 and splitted[1]:
-            add_price = splitted[1][splitted[1].startswith("+") :]
-            if add_price.isdigit():
-                add_price = int(add_price)
-        bet = lot.redemption_price + add_price
+    if "выкуп" in o.text.lower() and lot.redemption_price:
+        bet = lot.redemption_price
     else:
         try:
             bet = int(o.text)

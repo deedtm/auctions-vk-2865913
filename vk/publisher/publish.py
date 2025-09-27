@@ -134,7 +134,7 @@ async def send_overlimited_notification(user_id: int, lots: list[Lot]):
         keyboard=overlimit_kb(with_other_group, gid),
     )
 
-
+@err_handler.catch
 async def __upload_photos(lot: Lot, group_id: int):
     if not lot.photos_paths:
         return
@@ -153,7 +153,7 @@ async def __upload_photos(lot: Lot, group_id: int):
                 lot.id, moderation_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
             )
             break
-        await sleep(0.5)  # To avoid hitting API limits
+        await sleep(1)  # To avoid hitting API limits
     else:
         return photos
 

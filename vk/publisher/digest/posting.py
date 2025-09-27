@@ -36,7 +36,7 @@ async def digest_wrapper():
 
 
 async def post_digests(groups: list[GroupsGroupFull]):
-    end_date = int(time()) + 86400
+    end_date = int(datetime.now(TZ).timestamp()) + 86400
     for g in groups:
         lots = await get_lots_ended_before(
             end_date, group_id=-g.id, moderation_status=LotStatusDB.PUBLISHED.value

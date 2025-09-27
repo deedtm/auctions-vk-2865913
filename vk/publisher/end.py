@@ -6,12 +6,12 @@ from typing import Optional
 
 from vkbottle.exception_factory import VKAPIError
 
+from config.time import TZ
 from config.vk import (
     AUCTIONS_CLOSING_INTERVAL,
     AUCTIONS_EXTENSION,
     MAX_RATING_TO_DANGER,
 )
-from config.time import TZ
 from database.groups.utils import get_group
 from database.lots.models import Lot
 from database.lots.utils import get_ended_lots, get_lots_by_fields, update_lot_data
@@ -56,16 +56,19 @@ async def close_auctions():
         await sleep(AUCTIONS_CLOSING_INTERVAL)
 
     failed_files = 0
-    
+
     for l in successful:
-        paths = l.photos_paths.split(',')
+        paths = l.photos_paths.split(",")
         for p in paths:
             try:
                 os.remove(p)
             except FileNotFoundError:
                 failed_files += 1
-    logger.debug(f"Removed photos from {len(successful)} lots (and not found {failed_files} photos)")
-    
+    successful_ids = [str(l.id) for l in successful]
+    logger.debug(
+        f"Removed photos from {len(successful)} lots (with not found {failed_files} photos): {'; '.join(successful_ids)}"
+    )
+
 
 async def end_wrapper():
     delay = DEFAULT_DELAY
