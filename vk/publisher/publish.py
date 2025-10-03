@@ -2,7 +2,7 @@ import time
 from asyncio import sleep
 from datetime import datetime, timedelta
 from random import randint
-from traceback import format_exc
+from traceback import format_exception
 
 from vkbottle import PhotoWallUploader
 
@@ -47,7 +47,7 @@ async def reset_posts_amounts_wrapper():
             )
             await sleep(86400)
         except Exception as e:
-            logger.error(f"reset_posts_amounts_wrapper: {e.__class__.__name__}: {e}")
+            logger.error(f"reset_posts_amounts_wrapper: {e.__class__.__name__}: {format_exception(e)}")
             return
 
 
@@ -57,7 +57,7 @@ async def post_wrapper():
             await post_lots()
             await sleep(POSTING_INTERVAL)
         except Exception as e:
-            logger.error(f"post_wrapper: {e.__class__.__name__}: {e}")
+            logger.error(f"post_wrapper: {e.__class__.__name__}: {format_exception(e)}")
             return
 
 
@@ -149,7 +149,7 @@ async def __upload_photos(lot: Lot, group_id: int):
             photo = await uploader.upload(path, group_id=-group_id)
             photos.append(photo)
         except Exception as e:
-            logger.error(f"Error uploading photo {path}: {e.__class__.__name__}\n{format_exc(e)}")
+            logger.error(f"Error uploading photo {path}: {e.__class__.__name__}\n{format_exception(e)}")
             lot.moderation_status = LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
             await update_lot_data(
                 lot.id, moderation_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
