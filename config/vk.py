@@ -28,7 +28,9 @@ _RAW_AUCTIONS_ENDING_TIME = _config.get("vk", "auctions_ending_time")
 AUCTIONS_ENDING_TIME = datetime.strptime(_RAW_AUCTIONS_ENDING_TIME, "%H:%M")
 
 AUCTIONS_EXTENSION = _config.getint("vk", "auctions_extension_seconds")
-AUCTIONS_CLOSING_INTERVAL = _config.getint('vk', "auctions_closing_interval")
+AUCTIONS_CLOSING_INTERVAL = _config.getint("vk", "auctions_closing_interval")
+
+REDEMPTION_COMMAND = _config.get("vk", "redemption_command").lower()
 
 _RAW_COLLECTOR_NOTIFICATIONS_TIME = _config.get("vk", "collector_notifications_time")
 COLLECTOR_NOTIFICATIONS_TIME = datetime.strptime(

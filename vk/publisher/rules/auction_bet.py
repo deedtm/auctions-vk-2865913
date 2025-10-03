@@ -1,6 +1,8 @@
-from database.lots.utils import is_ongoing_auction
 from vkbottle import GroupTypes
 from vkbottle.dispatch.rules import ABCRule
+
+from config.vk import REDEMPTION_COMMAND
+from database.lots.utils import is_ongoing_auction
 
 
 class AuctionBetFilter(ABCRule[GroupTypes.WallReplyNew]):
@@ -10,7 +12,7 @@ class AuctionBetFilter(ABCRule[GroupTypes.WallReplyNew]):
         if o.is_from_post_author:
             return False
 
-        if not o.text.isnumeric():
+        if not o.text.isnumeric() or not REDEMPTION_COMMAND in o.text.lower():
             return False
 
         is_ongoing = await is_ongoing_auction(o.post_owner_id, o.post_id)

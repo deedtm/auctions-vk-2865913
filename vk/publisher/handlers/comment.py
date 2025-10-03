@@ -2,6 +2,7 @@ import time
 
 from vkbottle import GroupEventType, GroupTypes
 
+from config.vk import REDEMPTION_COMMAND
 from database.lots.utils import get_lot, update_lot_data
 from enums.moderation import LotStatusDB
 from templates import BETS
@@ -20,13 +21,10 @@ async def wall_reply_new(event: GroupTypes.WallReplyNew):
 
     lot = await get_lot(group_id=o.post_owner_id, post_id=o.post_id)
 
-    if "выкуп" in o.text.lower() and lot.redemption_price:
+    if REDEMPTION_COMMAND in o.text.lower():
         bet = lot.redemption_price
     else:
-        try:
-            bet = int(o.text)
-        except ValueError:
-            return
+        bet = int(o.text)
 
     if lot.moderation_status == LotStatusDB.REDEEMED.value:
         await w.create_comment(
