@@ -54,6 +54,11 @@ async def vk_api_901_handler(**kwargs):
             f"Failed to send message to user (user_id not found, kwargs: {kwargs})"
         )
 
+async def vk_api_15_handler(e: VKAPIError):
+    if 'edit time expired' in e.error_msg:
+        return
+    else:
+        logger.error(f"[{e.code}] {e.error_msg}")
 
 @err_handler.register_error_handler(VKAPIError)
 async def vk_api_handler(e: VKAPIError, *wrapped_args, **wrapped_kwargs):
@@ -63,5 +68,7 @@ async def vk_api_handler(e: VKAPIError, *wrapped_args, **wrapped_kwargs):
         await vk_api_9_handler(*wrapped_args, **wrapped_kwargs)
     elif e.code == 901:
         await vk_api_901_handler(**wrapped_kwargs)
+    elif e.code == 15:
+        await vk_api_15_handler(e)
     else:
-        logger.error(f"VK API Error {e.code}: {e.error_msg}; {wrapped_kwargs=}; {wrapped_args=}")
+        logger.error(f"[VK API {e.code}] {e.error_msg} | {wrapped_kwargs=} | {wrapped_args=}")
