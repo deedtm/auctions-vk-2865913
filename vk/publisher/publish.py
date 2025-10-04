@@ -5,22 +5,16 @@ from random import randint
 from traceback import format_exception
 
 from vkbottle import PhotoWallUploader
+from vkbottle.exception_factory.base_exceptions import VKAPIError
 
 from config.time import TZ
 from config.vk import AUCTIONS_ENDING_TIME, GROUP_LOTS_LIMIT, POSTING_INTERVAL
-from database.groups.utils import (
-    get_available_group,
-    get_group,
-    get_posts_amount,
-    reset_all_posts_amount,
-    set_posts_amount,
-)
+from database.groups.utils import (get_available_group, get_group,
+                                   get_posts_amount, reset_all_posts_amount,
+                                   set_posts_amount)
 from database.lots.models import Lot
-from database.lots.utils import (
-    get_unsended_lots,
-    replace_moderation_status,
-    update_lot_data,
-)
+from database.lots.utils import (get_unsended_lots, replace_moderation_status,
+                                 update_lot_data)
 from database.users.utils import get_user
 from enums.moderation import LotStatusDB
 from templates import PUBLISH
@@ -47,7 +41,9 @@ async def reset_posts_amounts_wrapper():
             )
             await sleep(86400)
         except Exception as e:
-            logger.error(f"reset_posts_amounts_wrapper: {e.__class__.__name__}: {format_exception(e)}")
+            logger.error(
+                f"reset_posts_amounts_wrapper: {e.__class__.__name__}: {''.join(format_exception(e))}"
+            )
             return
 
 
@@ -57,7 +53,9 @@ async def post_wrapper():
             await post_lots()
             await sleep(POSTING_INTERVAL)
         except Exception as e:
-            logger.error(f"post_wrapper: {e.__class__.__name__}: {format_exception(e)}")
+            logger.error(
+                f"post_wrapper: {e.__class__.__name__}: {''.join(format_exception(e))}"
+            )
             return
 
 
@@ -136,20 +134,43 @@ async def send_overlimited_notification(user_id: int, lots: list[Lot]):
     )
 
 
+async def __upload_photo(
+    uploader: PhotoWallUploader,
+    path: str,
+    group_id: int,
+    try_: int = 1,
+    err: VKAPIError = None,
+):
+    if try_ > 5:
+        raise err
+
+    try:
+        return await uploader.upload(path, group_id=group_id)
+    except VKAPIError as e:
+        if e.code == 100:
+            return await __upload_photo(uploader, path, group_id, try_ + 1, e)
+        else:
+            raise e
+
+
 @err_handler.catch
 async def __upload_photos(lot: Lot, group_id: int):
     if not lot.photos_paths:
         return
+
+    abs_gid = abs(group_id)
 
     uploader = PhotoWallUploader(user_api)
     photos = []
     paths = lot.photos_paths.split(",")
     for path in paths:
         try:
-            photo = await uploader.upload(path, group_id=-group_id)
+            photo = await __upload_photo(uploader, path, abs_gid)
             photos.append(photo)
         except Exception as e:
-            logger.error(f"Error uploading photo {path}: {e.__class__.__name__}\n{format_exception(e)}")
+            logger.error(
+                f"Error uploading photo {path}: {e.__class__.__name__}\n{''.join(format_exception(e))}"
+            )
             lot.moderation_status = LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
             await update_lot_data(
                 lot.id, moderation_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
