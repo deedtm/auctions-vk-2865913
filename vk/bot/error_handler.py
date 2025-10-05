@@ -1,5 +1,6 @@
 from asyncio import sleep
 from random import randint
+
 from vkbottle import API
 from vkbottle.bot import Message
 from vkbottle.exception_factory.base_exceptions import VKAPIError
@@ -35,7 +36,9 @@ async def vk_api_9_handler(*args, **kwargs):
     if args:
         o, api = args[1]["object"], args[2]
         text = ERRORS["flood_control"].format(sleep_delay)
-        await api.messages.send(message=text, peer_id=o["peer_id"], random_id=randint(10**6, 10**8))
+        await api.messages.send(
+            message=text, peer_id=o["peer_id"], random_id=randint(10**6, 10**8)
+        )
     else:
         logger.warning(
             f"Not found api in args for vk api 9 error. Given kwargs: {kwargs}. Given args: {args}"
@@ -54,11 +57,13 @@ async def vk_api_901_handler(**kwargs):
             f"Failed to send message to user (user_id not found, kwargs: {kwargs})"
         )
 
+
 async def vk_api_15_handler(e: VKAPIError):
-    if 'edit time expired' in e.error_msg:
+    if "edit time expired" in e.error_msg or "post or comment deleted" in e.error_msg:
         return
     else:
         logger.error(f"[{e.code}] {e.error_msg}")
+
 
 @err_handler.register_error_handler(VKAPIError)
 async def vk_api_handler(e: VKAPIError, *wrapped_args, **wrapped_kwargs):
@@ -71,4 +76,6 @@ async def vk_api_handler(e: VKAPIError, *wrapped_args, **wrapped_kwargs):
     elif e.code == 15:
         await vk_api_15_handler(e)
     else:
-        logger.error(f"[VK API {e.code}] {e.error_msg} | {wrapped_kwargs=} | {wrapped_args=}")
+        logger.error(
+            f"[VK API {e.code}] {e.error_msg} | {wrapped_kwargs=} | {wrapped_args=}"
+        )
