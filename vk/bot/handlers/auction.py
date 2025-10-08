@@ -1,9 +1,11 @@
 import os
+from asyncio import sleep
 from time import time_ns
-from traceback import format_exc
+from traceback import format_exception
 from typing import Optional
 
 import aiohttp
+from aiohttp.client_exceptions import ClientResponseError
 from vkbottle.bot import Message
 from vkbottle_types.objects import MessagesMessageAttachment as Attachment
 
@@ -14,7 +16,7 @@ from enums.moderation import LotStatusDB
 from templates import COMMANDS, ERRORS
 from types_.lot import Lot
 
-from ...errors import LotNotEnoughDataError
+from ...errors import LotNotEnoughDataError, SavingPhotoError
 from ...keyboards.auction import confirmation_kb, creation_methods_kb
 from ...states_groups.auction import AuctionCreating
 from ...types import MessageEvent, labeler
@@ -79,6 +81,18 @@ async def save_photo(url: str, photo_id: int):
     return filepath
 
 
+async def get_photo_path(attachment: Attachment, try_: int = 1):
+    try:
+        return await save_photo(attachment.photo.orig_photo.url, attachment.photo.id)
+    except ClientResponseError as e:
+        if e.code != 404:
+            raise e
+        if try_ > 5:
+            raise SavingPhotoError(attachment, e)
+        sleep(1)
+        return await get_photo_path(attachment, try_ + 1)
+
+
 async def get_attachments(msg: Message):
     history = await msg.ctx_api.messages.get_history(
         peer_id=msg.peer_id, count=200, extended=1
@@ -90,11 +104,8 @@ async def get_attachments(msg: Message):
     photos = list(filter(lambda x: x.photo, attachments))
     paths = []
     for a in photos:
-        try:
-            filepath = await save_photo(a.photo.orig_photo.url, a.photo.id)
-            paths.append(filepath)
-        except Exception as e:
-            logger.error(f'Failed to save photo {a.photo.id}\n{format_exc(e)}')
+        filepath = await get_photo_path(a)
+        paths.append(filepath)
     return attachments, paths
 
 
@@ -141,10 +152,24 @@ async def poll_handler(msg: Message):
     if step == 3:
         msg_attachments = msg.attachments
         if list(filter(lambda x: x.photo, msg_attachments)):
-            attachments, photos_paths = await get_attachments(msg)
-            if not (attachments and photos_paths):
-                await msg.answer(ERRORS["no_attachments"])
+            try:
+                attachments, photos_paths = await get_attachments(msg)
+            except SavingPhotoError as e:
+                logger.warning(
+                    f"Failed to save photo {e.attachment}:\n{format_exception(e.saving_exception)}"
+                )
+                await msg.answer(ERRORS["failed_saving_attachment"])
                 return
+            except Exception as e:
+                logger.warning(
+                    f"Got exception while trying to save photo:\n{format_exception(e)}"
+                )
+                await msg.answer(ERRORS["failed_saving_attachment"])
+                return
+            else:
+                if not (attachments and photos_paths):
+                    await msg.answer(ERRORS["no_attachments"])
+                    return
         else:
             await msg.answer(ERRORS["no_attachments"])
             return
