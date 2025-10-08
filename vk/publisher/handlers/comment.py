@@ -19,6 +19,10 @@ async def wall_reply_new(event: GroupTypes.WallReplyNew):
     o = event.object
     w = event.ctx_api.wall
 
+    logger.debug(
+        f"Got comment group_id={o.post_owner_id}, post_id={o.post_id}, comment_text={o.text}, comment={o}"
+    )
+
     lot = await get_lot(group_id=o.post_owner_id, post_id=o.post_id)
 
     if REDEMPTION_COMMAND in o.text.lower():
