@@ -79,3 +79,8 @@ async def vk_api_handler(e: VKAPIError, *wrapped_args, **wrapped_kwargs):
         logger.error(
             f"[VK API {e.code}] {e.error_msg} | {wrapped_kwargs=} | {wrapped_args=}"
         )
+
+@err_handler.register_undefined_error_handler
+async def undefined_handler(e: Exception):
+    logger.error(f"[UNDEFINED] {e.__class__.__name__}: {e}")
+    
