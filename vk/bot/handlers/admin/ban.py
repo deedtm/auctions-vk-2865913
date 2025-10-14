@@ -1,9 +1,10 @@
-import time
+from datetime import datetime
 
 from vkbottle.bot import Message
 from vkbottle.exception_factory import VKAPIError
 
 from config.admin import BAN_ACCESS
+from config.time import TZ
 from templates import ADMIN_COMMANDS as ADMIN
 from templates import ERRORS
 
@@ -44,7 +45,7 @@ async def ban_handler(msg: Message):
 
     end_date = None
     if days:
-        end_date = int(time.time()) + int(days) * 86400
+        end_date = int(datetime.now(TZ).timestamp()) + int(days) * 86400
     group = await get_self_group(msg.ctx_api, False)
     try:
         await user_api.groups.ban(group_id=group.id, user_id=user.id, end_date=end_date)

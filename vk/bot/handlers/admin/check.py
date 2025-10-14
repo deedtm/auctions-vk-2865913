@@ -1,17 +1,13 @@
 from asyncio import sleep
 from datetime import datetime
-from time import time
 
 from vkbottle.bot import Message
 from vkbottle_types.objects import UsersUserFull
 
 from config.admin import INFO_ACCESS
-from config.time import DATETIME_FORMAT
-from database.lots.utils import (
-    get_lots_by_user,
-    get_lots_with_commissions,
-    get_user_win_lots,
-)
+from config.time import DATETIME_FORMAT, TZ
+from database.lots.utils import (get_lots_by_user, get_lots_with_commissions,
+                                 get_user_win_lots)
 from database.payments.utils import get_total_amount_by_user_id
 from database.users.utils import get_user
 from templates import ADMIN_COMMANDS as ADMIN
@@ -51,7 +47,7 @@ async def user_text(user: UsersUserFull) -> str:
     lots_amount, wins_amount = len(lots), len(wins)
     max_overdue, total_commission = 0, 0
     for l in commission_lots:
-        overdue = int((time() - l.end_date) // 86400)
+        overdue = int((datetime.now(TZ).timestamp() - l.end_date) // 86400)
         max_overdue = max(max_overdue, overdue)
         total_commission += l.commission
     rating, rating_name = getattr(dbu, "rating", 0), getattr(
@@ -117,9 +113,8 @@ async def swipe_handler(e: MessageEvent):
         users = sp.payload["users"]
         last_index = sp.payload["last_index"]
     except AttributeError:
-        await e.edit_message(ERRORS['outdated'])
+        await e.edit_message(ERRORS["outdated"])
         return
-
 
     user = users[offset]
     text = await user_text(user)

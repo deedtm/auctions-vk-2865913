@@ -1,7 +1,8 @@
-import time
+from datetime import datetime
 
 from vkbottle import GroupEventType, GroupTypes
 
+from config.time import TZ
 from config.vk import REDEMPTION_COMMAND
 from database.lots.utils import get_lot, update_lot_data
 from enums.moderation import LotStatusDB
@@ -47,7 +48,7 @@ async def wall_reply_new(event: GroupTypes.WallReplyNew):
     update_kwargs = {
         "last_bet": bet,
         "last_bet_comment": o.id,
-        "last_bet_date": int(time.time()),
+        "last_bet_date": int(datetime.now(TZ).timestamp()),
         "last_bettor_id": o.from_id,
     }
 

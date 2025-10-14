@@ -1,6 +1,7 @@
 import random
-import time
+from datetime import datetime
 from html import escape
+from config.time import TZ
 
 from sqlalchemy import delete as sqlalchemy_delete
 from sqlalchemy import or_, select
@@ -147,7 +148,7 @@ async def get_unsended_lots(group_id: int | None = None) -> list[DBLot]:
 async def get_ended_lots() -> list[DBLot]:
     """Return all lots that have ended."""
     async for session in get_session():
-        now = int(time.time())
+        now = int(datetime.now(TZ).timestamp())
         is_ended = DBLot.moderation_status == LotStatusDB.ENDED.value
         is_closed = DBLot.moderation_status == LotStatusDB.CLOSED.value
         is_outdated = DBLot.end_date < now
@@ -295,7 +296,7 @@ async def is_lot_sended(lot_id: int) -> bool:
 async def is_ongoing_auction(group_id: int, post_id: int) -> bool:
     """Check if the auction is ongoing"""
     lot = await get_lot(group_id=group_id, post_id=post_id)
-    if not lot or lot.end_date < int(time.time()):
+    if not lot or lot.end_date < int(datetime.now(TZ).timestamp()):
         return False
     return True
 

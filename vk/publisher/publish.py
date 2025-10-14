@@ -192,7 +192,7 @@ async def send_failed_photo_upload_notification(lot: Lot):
 
 @err_handler.catch
 async def _post_lot(lot: Lot):
-    lot.publish_date = int(time.time())
+    lot.publish_date = int(datetime.now(TZ).timestamp())
     lot.end_date = get_end_date(lot.publish_date)
     attachments = await __upload_photos(lot, lot.group_id)
     if not attachments:
