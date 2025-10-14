@@ -74,18 +74,19 @@ async def upload_photo(
         if res:
             logger.debug(f"Uploaded {path}: {res}")
             return res
+        logger.debug(f"Got `None` result while trying to upload {path}")
     except VKAPIError as e:
         logger.error(
             f"[{e.code}] VK API Error while trying to upload {path}: {group_id=}; {e=}"
         )
         await sleep_random()
-        return await upload_photo(path, group_id, api, try_ + 1, e)
+        return await upload_photo(path, group_id, api, uploader, try_ + 1, e)
     except JSONDecodeError as e:
         logger.error(
             f"JSON Decode Error while trying to upload {path}: {group_id=}; {e=}"
         )
         await sleep_random()
-        return await upload_photo(path, group_id, api, try_ + 1, e)
+        return await upload_photo(path, group_id, api, uploader, try_ + 1, e)
     except Exception as e:
         logger.warning(f"Error uploading photo {path}: {e}")
         return e
