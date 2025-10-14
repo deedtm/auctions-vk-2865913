@@ -3,6 +3,7 @@ from random import randint
 
 from vkbottle import API
 from vkbottle.bot import Message
+from traceback import format_exception
 from vkbottle.exception_factory.base_exceptions import VKAPIError
 
 import captcha_api as captcha
@@ -81,6 +82,6 @@ async def vk_api_handler(e: VKAPIError, *wrapped_args, **wrapped_kwargs):
         )
 
 @err_handler.register_undefined_error_handler
-async def undefined_handler(e: Exception):
-    logger.error(f"[UNDEFINED] {e.__class__.__name__}: {e}")
+async def undefined_handler(e: Exception, *args, **kwargs):
+    logger.error(f"[UNDEFINED] {args=} | {kwargs=}\n{'\n'.join(format_exception(e))}")
     
