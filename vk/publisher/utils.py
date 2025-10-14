@@ -1,4 +1,5 @@
 from asyncio import sleep
+from json import JSONDecodeError
 from random import uniform
 
 from vkbottle import API, PhotoWallUploader, VKAPIError
@@ -44,10 +45,22 @@ async def edit_post(lot: Lot, **kwargs):
     return True
 
 
+async def sleep_random(min_time: int = 5, max_time: int = 10):
+    waiting = uniform(min_time, max_time)
+    logger.debug(f"Sleeping {waiting:.2f} seconds and retrying to upload")
+    await sleep(waiting)
+    return waiting
+
+
 async def upload_photo(
-    path: str, group_id: int, api: API = user_api, uploader: PhotoWallUploader = None, try_: int = 1, err: Exception = None
+    path: str,
+    group_id: int,
+    api: API = user_api,
+    uploader: PhotoWallUploader = None,
+    try_: int = 1,
+    err: Exception = None,
 ):
-    assert api or uploader, '`api` or `uploader` must been provided'
+    assert api or uploader, "`api` or `uploader` must been provided"
 
     if try_ > 5:
         logger.error(f"Exceeded limit of tries while uploading {path}: {group_id=}")
@@ -62,12 +75,17 @@ async def upload_photo(
             logger.debug(f"Uploaded {path}: {res}")
             return res
     except VKAPIError as e:
-        waiting = uniform(5, 10)
-        logger.error(f'[{e.code}] VK API Error while trying to upload {path}: {group_id=}; {e=}')
-        logger.debug(f'Sleeping {waiting:.2f} seconds and retrying to upload')
-        await sleep(waiting)
+        logger.error(
+            f"[{e.code}] VK API Error while trying to upload {path}: {group_id=}; {e=}"
+        )
+        await sleep_random()
+        return await upload_photo(path, group_id, api, try_ + 1, e)
+    except JSONDecodeError as e:
+        logger.error(
+            f"JSON Decode Error while trying to upload {path}: {group_id=}; {e=}"
+        )
+        await sleep_random()
         return await upload_photo(path, group_id, api, try_ + 1, e)
     except Exception as e:
         logger.warning(f"Error uploading photo {path}: {e}")
         return e
-    
