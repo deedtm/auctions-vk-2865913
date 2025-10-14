@@ -1,4 +1,7 @@
-from vkbottle import API, PhotoWallUploader
+from asyncio import sleep
+from random import uniform
+
+from vkbottle import API, PhotoWallUploader, VKAPIError
 
 from database.groups.utils import add_group, get_group
 from database.lots.models import Lot
@@ -41,9 +44,25 @@ async def edit_post(lot: Lot, **kwargs):
     return True
 
 
-async def upload_photo(path: str, group_id: int, api: API = user_api):
+async def upload_photo(
+    path: str, group_id: int, api: API = user_api, try_: int = 1, err: Exception = None
+):
+    if try_ > 5:
+        logger.error(f"Exceeded limit of tries while uploading {path}: {group_id=}")
+        if isinstance(err, Exception):
+            raise err
+
     uploader = PhotoWallUploader(api)
     try:
         return await uploader.upload(path, group_id=abs(group_id))
+    except VKAPIError as e:
+        waiting = uniform(5, 10)
+        if e.code == 100:
+            logger.warning(f"[100] VK API Error while trying to upload {path}: {group_id=}; {e=}")
+        else:
+            logger.error(f'Got VK API Error while trying to upload {path}: {group_id=}; {e=}')
+        logger.debug(f'Sleeping {waiting:.2f} seconds and retrying to upload')
+        await sleep(waiting)
+        return await upload_photo(path, group_id, api, try_ + 1, e)
     except Exception as e:
         logger.warning(f"Error uploading photo {path}: {e}")

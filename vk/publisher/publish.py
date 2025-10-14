@@ -1,7 +1,6 @@
-import time
 from asyncio import sleep
 from datetime import datetime, timedelta
-from random import randint
+from random import randint, uniform
 from traceback import format_exception
 
 from vkbottle import PhotoWallUploader
@@ -148,10 +147,14 @@ async def __upload_photo(
     try:
         return await uploader.upload(path, group_id=group_id)
     except VKAPIError as e:
+        waiting = uniform(5, 10)
         if e.code == 100:
-            return await __upload_photo(uploader, path, group_id, try_ + 1, e)
+            logger.warning(f"[100] VK API Error while trying to upload {path}: {group_id=}; {e=}")
         else:
-            raise e
+            logger.error(f'Got VK API Error while trying to upload {path}: {group_id=}; {e=}')
+        logger.debug(f'Sleeping {waiting:.2f} seconds and retrying to upload')
+        await sleep(waiting)
+        return await __upload_photo(uploader, path, group_id, try_ + 1, e)
 
 
 @err_handler.catch
