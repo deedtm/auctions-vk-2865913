@@ -48,6 +48,7 @@ async def edit_post(lot: Lot, **kwargs):
     except VKAPIError as e:
         if e.code != 15:
             raise e
+        await logger.debug(f"Closing lot {lot.id} because post deleted")
         await update_lot_data(lot.id, moderation_status=LotStatusDB.CLOSED.value)
     return True
 
