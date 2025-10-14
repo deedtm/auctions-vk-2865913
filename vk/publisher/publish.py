@@ -141,6 +141,7 @@ async def __upload_photo(
     try_: int = 1,
     err: VKAPIError = None,
 ):
+    logger.debug(f'Trying uploading photo {path}: {try_=}; {group_id=}; {err=}')
     if try_ > 5:
         raise err
 
