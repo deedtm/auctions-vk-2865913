@@ -1,28 +1,35 @@
 from asyncio import sleep
 from datetime import datetime, timedelta
-from random import randint, uniform
+from random import randint
 from traceback import format_exception
 
 from vkbottle import PhotoWallUploader
-from vkbottle.exception_factory.base_exceptions import VKAPIError
 
 from config.time import TZ
 from config.vk import AUCTIONS_ENDING_TIME, GROUP_LOTS_LIMIT, POSTING_INTERVAL
-from database.groups.utils import (get_available_group, get_group,
-                                   get_posts_amount, reset_all_posts_amount,
-                                   set_posts_amount)
+from database.groups.utils import (
+    get_available_group,
+    get_group,
+    get_posts_amount,
+    reset_all_posts_amount,
+    set_posts_amount,
+)
 from database.lots.models import Lot
-from database.lots.utils import (get_unsended_lots, replace_moderation_status,
-                                 update_lot_data)
+from database.lots.utils import (
+    get_unsended_lots,
+    replace_moderation_status,
+    update_lot_data,
+)
 from database.users.utils import get_user
 from enums.moderation import LotStatusDB
 from templates import PUBLISH
 
-from ..bot.config import err_handler, state_dispenser
+from ..bot.config import err_handler
 from ..bot.notificator.utils import send_notification
+from ..errors import UploadingPhotoError
 from ..hyperlinks import group_link, group_post_hl
 from ..keyboards.publisher import overlimit_kb
-from ..publisher.utils import get_api
+from ..publisher.utils import get_api, upload_photo
 from .config import apis, logger, user_api
 
 
@@ -133,30 +140,6 @@ async def send_overlimited_notification(user_id: int, lots: list[Lot]):
     )
 
 
-async def __upload_photo(
-    uploader: PhotoWallUploader,
-    path: str,
-    group_id: int,
-    try_: int = 1,
-    err: VKAPIError = None,
-):
-    logger.debug(f'Trying uploading photo {path}: {try_=}; {group_id=}; {err=}')
-    if try_ > 5:
-        raise err
-
-    try:
-        return await uploader.upload(path, group_id=group_id)
-    except VKAPIError as e:
-        waiting = uniform(5, 10)
-        if e.code == 100:
-            logger.warning(f"[100] VK API Error while trying to upload {path}: {group_id=}; {e=}")
-        else:
-            logger.error(f'Got VK API Error while trying to upload {path}: {group_id=}; {e=}')
-        logger.debug(f'Sleeping {waiting:.2f} seconds and retrying to upload')
-        await sleep(waiting)
-        return await __upload_photo(uploader, path, group_id, try_ + 1, e)
-
-
 @err_handler.catch
 async def __upload_photos(lot: Lot, group_id: int):
     if not lot.photos_paths:
@@ -169,7 +152,11 @@ async def __upload_photos(lot: Lot, group_id: int):
     paths = lot.photos_paths.split(",")
     for path in paths:
         try:
-            photo = await __upload_photo(uploader, path, abs_gid)
+            photo = await upload_photo(path, abs_gid, uploader=uploader)
+            if isinstance(photo, Exception):
+                raise photo
+            elif photo is None:
+                raise UploadingPhotoError(path, group_id=abs_gid, uploader=uploader)
             photos.append(photo)
         except Exception as e:
             logger.error(
