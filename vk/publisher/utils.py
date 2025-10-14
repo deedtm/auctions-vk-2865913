@@ -6,7 +6,9 @@ from vkbottle import API, PhotoWallUploader, VKAPIError
 
 from database.groups.utils import add_group, get_group
 from database.lots.models import Lot
+from database.lots.utils import update_lot_data
 from database.users.utils import get_user
+from enums.moderation import LotStatusDB
 
 from ..bot.config import err_handler
 from ..utils import get_self_group
@@ -35,13 +37,18 @@ async def edit_post(lot: Lot, **kwargs):
     group = await get_group(lot.group_id)
     additional_ind = group.auctions_template.find("{ADDITIONAL}")
     text = group.auctions_template[:additional_ind].format(URGENT=urgent, MAIN=main)
-    await user_api.wall.edit(
-        owner_id=lot.group_id,
-        post_id=lot.post_id,
-        message=text,
-        attachments=lot.user_photos,
-        **kwargs,
-    )
+    try:
+        await user_api.wall.edit(
+            owner_id=lot.group_id,
+            post_id=lot.post_id,
+            message=text,
+            attachments=lot.user_photos,
+            **kwargs,
+        )
+    except VKAPIError as e:
+        if e.code != 15:
+            raise e
+        await update_lot_data(lot.id, moderation_status=LotStatusDB.CLOSED.value)
     return True
 
 
