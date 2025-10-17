@@ -51,9 +51,9 @@ async def close_auctions():
             await update_lot_data(l.id, moderation_status=LotStatusDB.CLOSED.value)
             successful.append(l)
             logger.debug(f"Closed lot {l.id}")
+            await sleep(AUCTIONS_CLOSING_INTERVAL)
         else:
             logger.debug(f"Failed to close lot {l.id}, skipping")
-        await sleep(AUCTIONS_CLOSING_INTERVAL)
 
     failed_files = 0
 
