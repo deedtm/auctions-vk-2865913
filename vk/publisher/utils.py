@@ -36,7 +36,7 @@ async def _init_access(ids: list[int], level: int):
     for i in ids:
         r = await update_user_data(i, access_level=level)
         if r:
-            good_ids.append(r)
+            good_ids.append(str(i))
 
     logger.debug(
         f'Initialized {len(good_ids)} users\' access level to {level}: {", ".join(good_ids)}'
