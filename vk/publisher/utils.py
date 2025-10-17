@@ -4,12 +4,12 @@ from random import uniform
 
 from vkbottle import API, PhotoWallUploader, VKAPIError
 
-from config.admin import (ADMIN_ACCESS, ADMINS_IDS, MODERATOR_ACCESS,
-                          MODERATORS_IDS)
+from config.admin import ADMIN_ACCESS, ADMINS_IDS, MODERATOR_ACCESS, MODERATORS_IDS
 from database.groups.utils import add_group, get_group
 from database.lots.models import Lot
 from database.lots.utils import update_lot_data
 from database.users.utils import get_user, update_user_data
+from enums.editing_responses import EditingResponses as ER
 from enums.moderation import LotStatusDB
 
 from ..bot.config import err_handler, logger
@@ -69,11 +69,14 @@ async def edit_post(lot: Lot, **kwargs):
             **kwargs,
         )
     except VKAPIError as e:
+        if e.code == 14:
+            return ER.CAPTCHA
         if e.code != 15:
             raise e
         logger.debug(f"Closing lot {lot.id} because post deleted")
         await update_lot_data(lot.id, moderation_status=LotStatusDB.CLOSED.value)
-    return True
+        return ER.DELETED_POST
+    return ER.SUCCESS
 
 
 async def sleep_random(min_time: int = 5, max_time: int = 10):

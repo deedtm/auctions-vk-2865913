@@ -16,6 +16,7 @@ from database.groups.utils import get_group
 from database.lots.models import Lot
 from database.lots.utils import get_ended_lots, get_lots_by_fields, update_lot_data
 from database.users.utils import get_user
+from enums.editing_responses import EditingResponses as ER
 from enums.moderation import LotStatusDB
 from templates import BETS
 
@@ -47,13 +48,15 @@ async def close_auctions():
 
     for l in lots:
         res = await edit_post(l, close_comments=True)
-        if res:
+        if res == ER.SUCCESS:
             await update_lot_data(l.id, moderation_status=LotStatusDB.CLOSED.value)
             successful.append(l)
             logger.debug(f"Closed lot {l.id}")
             await sleep(AUCTIONS_CLOSING_INTERVAL)
         else:
-            logger.debug(f"Failed to close lot {l.id}, skipping")
+            logger.debug(f"Failed to close lot {l.id}: {res.value}")
+            if res in [ER.CAPTCHA, ER.UNKNOWN_FAILURE]:
+                await sleep(AUCTIONS_CLOSING_INTERVAL)
 
     failed_files = 0
 
