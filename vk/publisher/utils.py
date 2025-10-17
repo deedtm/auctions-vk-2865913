@@ -4,13 +4,15 @@ from random import uniform
 
 from vkbottle import API, PhotoWallUploader, VKAPIError
 
+from config.admin import (ADMIN_ACCESS, ADMINS_IDS, MODERATOR_ACCESS,
+                          MODERATORS_IDS)
 from database.groups.utils import add_group, get_group
 from database.lots.models import Lot
 from database.lots.utils import update_lot_data
-from database.users.utils import get_user
+from database.users.utils import get_user, update_user_data
 from enums.moderation import LotStatusDB
 
-from ..bot.config import err_handler
+from ..bot.config import err_handler, logger
 from ..utils import get_self_group
 from .config import apis, groups_apis, logger, user_api
 
@@ -24,6 +26,27 @@ async def init_groups():
         if not dbgroup:
             dbgroup = await add_group(group.id, group.name)
         groups_apis[str(abs(group.id))] = api
+    logger.debug(
+        f'Initialized {len(groups_apis)} groups APIs: {", ".join(groups_apis.keys())}'
+    )
+
+
+async def _init_access(ids: list[int], level: int):
+    good_ids = []
+    for i in ids:
+        r = await update_user_data(i, access_level=level)
+        if r:
+            good_ids.append(r)
+
+    logger.debug(
+        f'Initialized {len(good_ids)} users\' access level to {level}: {", ".join(good_ids)}'
+    )
+    return good_ids
+
+
+async def init_accesses():
+    _init_access(MODERATORS_IDS, MODERATOR_ACCESS)
+    _init_access(ADMINS_IDS, ADMIN_ACCESS)
 
 
 def get_api(group_id: int):
