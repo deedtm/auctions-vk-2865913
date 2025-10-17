@@ -15,7 +15,7 @@ from log import file_formatter, get_logger
 # from vk.bot import api as bot_api
 from vk.bot import bot as bot_bot
 from vk.publisher import apis as publisher_apis
-from vk.publisher.utils import init_groups
+from vk.publisher.utils import init_groups, init_accesses
 from vk.wrappers import *
 
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     logger.critical("Starting bot...")
 
     lw = LoopWrapper(
-        on_startup=[init_schemas(), init_groups()], tasks=[the_looping(logger)]
+        on_startup=[init_schemas(), init_groups(), init_accesses()], tasks=[the_looping(logger)]
     )
 
     bot_bot.loop_wrapper = lw
