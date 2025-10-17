@@ -54,9 +54,12 @@ async def close_auctions():
             logger.debug(f"Closed lot {l.id}")
             await sleep(AUCTIONS_CLOSING_INTERVAL)
         else:
-            logger.debug(f"Failed to close lot {l.id}: {res.value}")
-            if res in [ER.CAPTCHA, ER.UNKNOWN_FAILURE]:
-                await sleep(AUCTIONS_CLOSING_INTERVAL)
+            logger.debug(
+                f"Failed to close lot {l.id}: {res.value if isinstance(res, ER) else res}"
+            )
+            if res == ER.DELETED_POST:
+                continue
+            await sleep(AUCTIONS_CLOSING_INTERVAL)
 
     failed_files = 0
 

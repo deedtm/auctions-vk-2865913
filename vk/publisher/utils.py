@@ -39,7 +39,7 @@ async def _init_access(ids: list[int], level: int):
             good_ids.append(str(i))
 
     logger.debug(
-        f'Initialized {len(good_ids)} users\' access level to {level}: {", ".join(good_ids)}'
+        f'Initialized {len(good_ids)} users\' access level as {level}: {", ".join(good_ids)}'
     )
     return good_ids
 
