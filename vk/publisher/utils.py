@@ -69,8 +69,6 @@ async def edit_post(lot: Lot, **kwargs):
             **kwargs,
         )
     except VKAPIError as e:
-        if e.code == 14:
-            return ER.CAPTCHA
         if e.code != 15:
             raise e
         logger.debug(f"Closing lot {lot.id} because post deleted")
