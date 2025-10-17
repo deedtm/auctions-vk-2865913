@@ -45,8 +45,8 @@ async def _init_access(ids: list[int], level: int):
 
 
 async def init_accesses():
-    _init_access(MODERATORS_IDS, MODERATOR_ACCESS)
-    _init_access(ADMINS_IDS, ADMIN_ACCESS)
+    await _init_access(MODERATORS_IDS, MODERATOR_ACCESS)
+    await _init_access(ADMINS_IDS, ADMIN_ACCESS)
 
 
 def get_api(group_id: int):
