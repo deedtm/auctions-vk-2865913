@@ -55,13 +55,15 @@ async def close_auctions():
             await sleep(AUCTIONS_CLOSING_INTERVAL)
         else:
             logger.debug(
-                f"Failed to close lot {l.id}: {res.value if isinstance(res, ER) else res}"
+                f"Failed to close lot {l.id}: {res.value if isinstance(res, ER) else 'some vk api error'}"
             )
             if res == ER.DELETED_POST:
                 continue
             await sleep(AUCTIONS_CLOSING_INTERVAL)
 
     failed_files = 0
+    failed_photo_lots = await get_lots_by_fields(moderation_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value)
+    successful += failed_photo_lots
 
     for l in successful:
         paths = l.photos_paths.split(",")
