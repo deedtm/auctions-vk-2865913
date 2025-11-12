@@ -59,10 +59,13 @@ async def close_auctions():
             )
             if res == ER.DELETED_POST:
                 continue
+            successful.append(l)
             await sleep(AUCTIONS_CLOSING_INTERVAL)
 
     failed_files = 0
-    failed_photo_lots = await get_lots_by_fields(moderation_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value)
+    failed_photo_lots = await get_lots_by_fields(
+        moderation_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
+    )
     successful += failed_photo_lots
 
     for l in successful:
