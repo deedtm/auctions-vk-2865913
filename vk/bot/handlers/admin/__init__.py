@@ -11,5 +11,6 @@ from . import (
     unban,
     record,
     publishoverlimit,
-    setaccess
+    setaccess,
+    removephotos
 )

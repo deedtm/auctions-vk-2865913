@@ -7,12 +7,14 @@ from typing import Optional
 from vkbottle.exception_factory import VKAPIError
 
 from config.time import TZ
-from config.vk import (AUCTIONS_CLOSING_INTERVAL, AUCTIONS_EXTENSION,
-                       MAX_RATING_TO_DANGER)
+from config.vk import (
+    AUCTIONS_CLOSING_INTERVAL,
+    AUCTIONS_EXTENSION,
+    MAX_RATING_TO_DANGER,
+)
 from database.groups.utils import get_group
 from database.lots.models import Lot
-from database.lots.utils import (get_ended_lots, get_lots_by_fields,
-                                 update_lot_data)
+from database.lots.utils import get_ended_lots, get_lots_by_fields, update_lot_data
 from database.users.utils import get_user
 from enums.editing_responses import EditingResponses as ER
 from enums.moderation import LotStatusDB
@@ -22,7 +24,7 @@ from ..hyperlinks import group_post_hl
 from ..keyboards.bets import Keyboard, seller_notification_kb
 from ..publisher.utils import get_api
 from .config import logger
-from .utils import edit_post
+from .utils import edit_post, remove_excessive_photos
 
 DEFAULT_DELAY = 60
 
@@ -35,28 +37,6 @@ async def close_wrapper():
         except Exception as e:
             logger.error(f"close_wrapper: {e.__class__.__name__}: {e}")
             return
-
-
-async def remove_excessive_photos():
-    lots = await get_lots_by_fields(moderation_status=LotStatusDB.CLOSED.value)
-    lots.extend(
-        await get_lots_by_fields(
-            moderations_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
-        )
-    )
-    if not lots:
-        return
-    
-    removed_paths = []
-    for l in lots:
-        paths = l.photos_paths.split(",")
-        for p in paths:
-            try:
-                os.remove(p)
-                removed_paths.append(p)
-            except FileNotFoundError:
-                pass
-    logger.debug(f"Removed {len(removed_paths)} files from {len(lots)} lots")
 
 
 async def close_auctions():
@@ -82,7 +62,11 @@ async def close_auctions():
             successful.append(l)
             await sleep(AUCTIONS_CLOSING_INTERVAL)
 
-    await remove_excessive_photos()
+    remove_data = await remove_excessive_photos()
+    if remove_data is not None:
+        logger.debug(
+            f"Automatically removed {len(remove_data[0])} files from {len(remove_data[1])} lots"
+        )
 
 
 async def end_wrapper():
@@ -187,6 +171,6 @@ async def _send_notification(
         )
     except VKAPIError[901]:
         logger.debug(f"Can't send message to user {peer_id}: no permission")
-    # await state_dispenser.set(user_id, recipient + "_state", lot=lot)
+        # await state_dispenser.set(user_id, recipient + "_state", lot=lot)
         logger.debug(f"Can't send message to user {peer_id}: no permission")
     # await state_dispenser.set(user_id, recipient + "_state", lot=lot)

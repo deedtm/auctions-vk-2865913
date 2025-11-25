@@ -1,13 +1,15 @@
+import os
 from asyncio import sleep
 from json import JSONDecodeError
 from random import uniform
 
 from vkbottle import API, PhotoWallUploader, VKAPIError
 
-from config.admin import ADMIN_ACCESS, ADMINS_IDS, MODERATOR_ACCESS, MODERATORS_IDS
+from config.admin import (ADMIN_ACCESS, ADMINS_IDS, MODERATOR_ACCESS,
+                          MODERATORS_IDS)
 from database.groups.utils import add_group, get_group
 from database.lots.models import Lot
-from database.lots.utils import update_lot_data
+from database.lots.utils import get_lots_by_fields, update_lot_data
 from database.users.utils import get_user, update_user_data
 from enums.editing_responses import EditingResponses as ER
 from enums.moderation import LotStatusDB
@@ -122,3 +124,26 @@ async def upload_photo(
     except Exception as e:
         logger.warning(f"Error uploading photo {path}: {e}")
         return e
+
+
+async def remove_excessive_photos():
+    lots = await get_lots_by_fields(moderation_status=LotStatusDB.CLOSED.value)
+    lots.extend(
+        await get_lots_by_fields(
+            moderations_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
+        )
+    )
+    if not lots:
+        return
+
+    removed_paths = []
+    for l in lots:
+        paths = l.photos_paths.split(",")
+        for p in paths:
+            try:
+                os.remove(p)
+                removed_paths.append(p)
+            except FileNotFoundError:
+                pass
+            
+    return removed_paths, lots
