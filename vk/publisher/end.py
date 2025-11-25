@@ -7,14 +7,12 @@ from typing import Optional
 from vkbottle.exception_factory import VKAPIError
 
 from config.time import TZ
-from config.vk import (
-    AUCTIONS_CLOSING_INTERVAL,
-    AUCTIONS_EXTENSION,
-    MAX_RATING_TO_DANGER,
-)
+from config.vk import (AUCTIONS_CLOSING_INTERVAL, AUCTIONS_EXTENSION,
+                       MAX_RATING_TO_DANGER)
 from database.groups.utils import get_group
 from database.lots.models import Lot
-from database.lots.utils import get_ended_lots, get_lots_by_fields, update_lot_data
+from database.lots.utils import (get_ended_lots, get_lots_by_fields,
+                                 update_lot_data)
 from database.users.utils import get_user
 from enums.editing_responses import EditingResponses as ER
 from enums.moderation import LotStatusDB
@@ -37,6 +35,23 @@ async def close_wrapper():
         except Exception as e:
             logger.error(f"close_wrapper: {e.__class__.__name__}: {e}")
             return
+
+
+async def remove_excessive_photos():
+    lots = await get_lots_by_fields(moderation_status=LotStatusDB.CLOSED.value)
+    lots += await get_lots_by_fields(
+        moderations_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
+    )
+    removed_paths = []
+    for l in lots:
+        paths = l.photos_paths.split(",")
+        for p in paths:
+            try:
+                os.remove(p)
+                removed_paths.append(p)
+            except FileNotFoundError:
+                pass
+    logger.debug(f"Removed {len(removed_paths)} files from {len(lots)} lots")
 
 
 async def close_auctions():
@@ -62,23 +77,7 @@ async def close_auctions():
             successful.append(l)
             await sleep(AUCTIONS_CLOSING_INTERVAL)
 
-    failed_files = 0
-    failed_photo_lots = await get_lots_by_fields(
-        moderation_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
-    )
-    successful += failed_photo_lots
-
-    for l in successful:
-        paths = l.photos_paths.split(",")
-        for p in paths:
-            try:
-                os.remove(p)
-            except FileNotFoundError:
-                failed_files += 1
-    successful_ids = [str(l.id) for l in successful]
-    logger.debug(
-        f"Removed photos from {len(successful)} lots (with not found {failed_files} photos): {'; '.join(successful_ids)}"
-    )
+    await remove_excessive_photos()
 
 
 async def end_wrapper():

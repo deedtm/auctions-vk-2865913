@@ -52,11 +52,11 @@ async def wall_reply_new(event: GroupTypes.WallReplyNew):
         "last_bettor_id": o.from_id,
     }
 
-    # if bet < mn_start_bet:
-    #     template = BETS["lt_start"]
-    #     args = (mn_start_bet,)
+    if bet < mn_start_bet:
+        template = BETS["lt_start"]
+        args = (mn_start_bet,)
 
-    if lot.redemption_price and bet >= lot.redemption_price:
+    elif lot.redemption_price and bet >= lot.redemption_price:
         template = BETS["redemption_bet"]
         args = (None,)
         lot.last_bet = bet
