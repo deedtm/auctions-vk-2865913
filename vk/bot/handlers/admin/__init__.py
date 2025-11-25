@@ -10,5 +10,6 @@ from . import (
     setloyal,
     unban,
     record,
-    publishoverlimit
+    publishoverlimit,
+    setaccess
 )

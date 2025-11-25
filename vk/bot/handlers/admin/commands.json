@@ -4,6 +4,7 @@
     {"literals": ["check"], "args": ["{ссылка}"], "description": "информация о пользователе", "access": 2},
     {"literals": ["setbalance", "sb"], "args": ["{ссылка}", "[сумма]"], "description": "установка баланса (без аргумента \"сумма\" баланс обнулится)", "access": 3},
     {"literals": ["setloyal", "sl"], "args": ["{ссылка}", "[длительность в днях]"], "description": "установка абонемента (без аргумента \"длительность\" абонемент удалится)", "access": 3},
+    {"literals": ["setaccess", "sa"], "args": ["{ссылка}", "[уровень доступа]"], "description": "установка уровня доступа пользователя (без аргумента \"уровень доступа\" пользователь получит 0-й уровень)", "access": 3},
     {"literals": ["ban"], "args": ["{ссылка}", "[срок]"], "description": "бан", "access": 4},
     {"literals": ["unban"], "args": ["{ссылка}"], "description": "разбан", "access": 4},
     {"literals": ["managegroups", "mg"], "description": "управление группами", "access": 3},

@@ -79,7 +79,7 @@ async def is_enough_access(
     return True
 
 
-async def add_user(user: VkUser, access_level: int = 1) -> DBUser:
+async def add_user(user: VkUser, access_level: int = 0) -> DBUser:
     """Add a new user to the database"""
     async for session in get_session():
         new_user = DBUser(
