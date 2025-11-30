@@ -293,10 +293,10 @@ async def is_lot_sended(lot_id: int) -> bool:
     return True
 
 
-async def is_ongoing_auction(group_id: int, post_id: int) -> bool:
+async def is_ongoing_auction(group_id: int, post_id: int, penalty: int = 0) -> bool:
     """Check if the auction is ongoing"""
     lot = await get_lot(group_id=group_id, post_id=post_id)
-    if lot and lot.end_date + 60 >= int(datetime.now(TZ).timestamp()):
+    if lot and lot.end_date + penalty >= int(datetime.now(TZ).timestamp()):
         return True
     return False
 

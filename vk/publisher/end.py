@@ -7,14 +7,12 @@ from typing import Optional
 from vkbottle.exception_factory import VKAPIError
 
 from config.time import TZ
-from config.vk import (
-    AUCTIONS_CLOSING_INTERVAL,
-    AUCTIONS_EXTENSION,
-    MAX_RATING_TO_DANGER,
-)
+from config.vk import (AUCTIONS_CLOSING_INTERVAL, AUCTIONS_EXTENSION,
+                       MAX_RATING_TO_DANGER)
 from database.groups.utils import get_group
 from database.lots.models import Lot
-from database.lots.utils import get_ended_lots, get_lots_by_fields, update_lot_data
+from database.lots.utils import (get_ended_lots, get_lots_by_fields,
+                                 update_lot_data)
 from database.users.utils import get_user
 from enums.editing_responses import EditingResponses as ER
 from enums.moderation import LotStatusDB
@@ -23,7 +21,7 @@ from templates import BETS
 from ..hyperlinks import group_post_hl
 from ..keyboards.bets import Keyboard, seller_notification_kb
 from ..publisher.utils import get_api
-from .config import logger
+from .config import BETS_PENALTY_SECONDS, logger
 from .utils import edit_post, remove_excessive_photos
 
 DEFAULT_DELAY = 60
@@ -74,7 +72,7 @@ async def end_wrapper():
     while True:
         try:
             delay = await end_auctions()
-            await sleep(delay)
+            await sleep(delay + BETS_PENALTY_SECONDS)
         except Exception as e:
             logger.error(f"end_wrapper: {e.__class__.__name__}: {e}")
             return
@@ -97,8 +95,7 @@ async def end_auctions():
 
 async def _end_lot(lot: Lot):
     if lot.moderation_status != LotStatusDB.REDEEMED.value and lot.last_bet:
-        ending_unix = lot.end_date
-        if ending_unix - lot.last_bet_date <= AUCTIONS_EXTENSION:
+        if lot.end_date - lot.last_bet_date <= AUCTIONS_EXTENSION:
             new_end_date = int(datetime.now(TZ).timestamp()) + AUCTIONS_EXTENSION
             lot.end_date = new_end_date
             await update_lot_data(lot.id, end_date=lot.end_date)
@@ -172,5 +169,7 @@ async def _send_notification(
     except VKAPIError[901]:
         logger.debug(f"Can't send message to user {peer_id}: no permission")
         # await state_dispenser.set(user_id, recipient + "_state", lot=lot)
+        logger.debug(f"Can't send message to user {peer_id}: no permission")
+    # await state_dispenser.set(user_id, recipient + "_state", lot=lot)
         logger.debug(f"Can't send message to user {peer_id}: no permission")
     # await state_dispenser.set(user_id, recipient + "_state", lot=lot)
