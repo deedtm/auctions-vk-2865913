@@ -166,10 +166,6 @@ async def _send_notification(
         await api.messages.send(
             peer_id=peer_id, message=text, random_id=randint(10**7, 10**8), keyboard=kb
         )
-    except VKAPIError[901]:
-        logger.debug(f"Can't send message to user {peer_id}: no permission")
+    except VKAPIError as e:
+        logger.debug(f"[{e.code}] Can't send message to user {peer_id}: {e.error_msg} || {e}")
         # await state_dispenser.set(user_id, recipient + "_state", lot=lot)
-        logger.debug(f"Can't send message to user {peer_id}: no permission")
-    # await state_dispenser.set(user_id, recipient + "_state", lot=lot)
-        logger.debug(f"Can't send message to user {peer_id}: no permission")
-    # await state_dispenser.set(user_id, recipient + "_state", lot=lot)
