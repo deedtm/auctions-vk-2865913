@@ -44,27 +44,28 @@ async def close_auctions():
 
     successful = []
 
-    for l in lots:
-        res = await edit_post(l, close_comments=True)
-        if res == ER.SUCCESS:
-            await update_lot_data(l.id, moderation_status=LotStatusDB.CLOSED.value)
-            successful.append(l)
-            logger.debug(f"Closed lot {l.id}")
-            await sleep(AUCTIONS_CLOSING_INTERVAL)
-        else:
-            logger.debug(
-                f"Failed to close lot {l.id}: {res.value if isinstance(res, ER) else 'some vk api error'}"
-            )
-            if res == ER.DELETED_POST:
-                continue
-            successful.append(l)
-            await sleep(AUCTIONS_CLOSING_INTERVAL)
+    for i in range(0, len(lots) - 10, 10):
+        for l in lots[i : i + 10]:
+            res = await edit_post(l, close_comments=True)
+            if res == ER.SUCCESS:
+                await update_lot_data(l.id, moderation_status=LotStatusDB.CLOSED.value)
+                successful.append(l)
+                logger.debug(f"Closed lot {l.id}")
+                await sleep(AUCTIONS_CLOSING_INTERVAL)
+            else:
+                logger.debug(
+                    f"Failed to close lot {l.id}: {res.value if isinstance(res, ER) else 'some vk api error'}"
+                )
+                if res == ER.DELETED_POST:
+                    continue
+                successful.append(l)
+                await sleep(AUCTIONS_CLOSING_INTERVAL)
 
-    remove_data = await remove_excessive_photos()
-    if remove_data is not None:
-        logger.debug(
-            f"Automatically removed {len(remove_data[0])} files from {len(remove_data[1])} lots"
-        )
+        remove_data = await remove_excessive_photos()
+        if remove_data is not None:
+            logger.debug(
+                f"Automatically removed {len(remove_data[0])} files from {len(remove_data[1])} lots"
+            )
 
 
 async def end_wrapper():
@@ -167,5 +168,7 @@ async def _send_notification(
             peer_id=peer_id, message=text, random_id=randint(10**7, 10**8), keyboard=kb
         )
     except VKAPIError as e:
-        logger.debug(f"[{e.code}] Can't send message to user {peer_id}: {e.error_msg} || {e}")
+        logger.debug(
+            f"[{e.code}] Can't send message to user {peer_id}: {e.error_msg} || {e}"
+        )
         # await state_dispenser.set(user_id, recipient + "_state", lot=lot)
