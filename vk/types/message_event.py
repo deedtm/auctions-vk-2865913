@@ -6,7 +6,7 @@ from vkbottle import GroupTypes
 class MessageEvent(GroupTypes.MessageEvent):
     async def answer(self, text: str, **kwargs):
         await self.ctx_api.messages.send(
-            random_id=randint(10**6, 10**9),
+            random_id=0,
             peer_id=self.object.peer_id,
             message=text,
             **kwargs
