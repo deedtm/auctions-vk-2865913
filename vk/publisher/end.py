@@ -1,7 +1,9 @@
 import os
 from asyncio import sleep
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from random import randint
+from shutil import rmtree
+from traceback import format_exc
 from typing import Optional
 
 from vkbottle.exception_factory import VKAPIError
@@ -22,9 +24,35 @@ from ..hyperlinks import group_post_hl
 from ..keyboards.bets import Keyboard, seller_notification_kb
 from ..publisher.utils import get_api
 from .config import BETS_PENALTY_SECONDS, logger
-from .utils import edit_post, remove_excessive_photos
+from .utils import edit_post
 
 DEFAULT_DELAY = 60
+
+
+async def remove_photos_wrapper():
+    while True:
+        try:
+            await remove_photos()
+            await sleep(43200)
+        except Exception as e:
+            logger.error(f"remove_photos_wrapper: {e.__class__.__name__}: {e}")
+            return
+
+
+async def remove_photos():
+    today = datetime.now(TZ).date()
+    dirs = os.listdir("lots_images")
+    to_delete = [d for d in dirs if date.fromisoformat(d) <= today - timedelta(days=3)]
+    successful = []
+    for d in to_delete:
+        try:
+            rmtree(f"lots_images/{d}")
+            successful.append(d)
+        except Exception as e:
+            logger.error(f'Error while trying to remove photos from {d}: {format_exc()}')
+
+    if to_delete:
+        logger.debug(f"Automatically removed photos from {', '.join(successful)} days")
 
 
 async def close_wrapper():
@@ -44,28 +72,21 @@ async def close_auctions():
 
     successful = []
 
-    for i in range(0, len(lots) - 10, 10):
-        for l in lots[i : i + 10]:
-            res = await edit_post(l, close_comments=True)
-            if res == ER.SUCCESS:
-                await update_lot_data(l.id, moderation_status=LotStatusDB.CLOSED.value)
-                successful.append(l)
-                logger.debug(f"Closed lot {l.id}")
-                await sleep(AUCTIONS_CLOSING_INTERVAL)
-            else:
-                logger.debug(
-                    f"Failed to close lot {l.id}: {res.value if isinstance(res, ER) else 'some vk api error'}"
-                )
-                if res == ER.DELETED_POST:
-                    continue
-                successful.append(l)
-                await sleep(AUCTIONS_CLOSING_INTERVAL)
-
-        remove_data = await remove_excessive_photos()
-        if remove_data is not None:
+    for l in lots:
+        res = await edit_post(l, close_comments=True)
+        if res == ER.SUCCESS:
+            await update_lot_data(l.id, moderation_status=LotStatusDB.CLOSED.value)
+            successful.append(l)
+            logger.debug(f"Closed lot {l.id}")
+            await sleep(AUCTIONS_CLOSING_INTERVAL)
+        else:
             logger.debug(
-                f"Automatically removed {len(remove_data[0])} files from {len(remove_data[1])} lots"
+                f"Failed to close lot {l.id}: {res.value if isinstance(res, ER) else 'some vk api error'}"
             )
+            if res == ER.DELETED_POST:
+                continue
+            successful.append(l)
+            await sleep(AUCTIONS_CLOSING_INTERVAL)
 
 
 async def end_wrapper():
@@ -86,7 +107,7 @@ async def end_auctions():
 
     delays = [DEFAULT_DELAY]
     for lot in lots:
-        await update_lot_data(lot.id, moderation_status=LotStatusDB.WAITING_END)
+        await update_lot_data(lot.id, moderation_status=LotStatusDB.WAITING_END.value)
     for lot in lots:
         delays.append(await _end_lot(lot))
 

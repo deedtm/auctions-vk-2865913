@@ -11,11 +11,10 @@ from vkbottle.tools import LoopWrapper
 from config.vk import LOOPING_INITIAL_DELAY
 from database.utils import init_schemas
 from log import file_formatter, get_logger
-
 # from vk.bot import api as bot_api
 from vk.bot import bot as bot_bot
 from vk.publisher import apis as publisher_apis
-from vk.publisher.utils import init_groups, init_accesses
+from vk.publisher.utils import init_accesses, init_groups
 from vk.wrappers import *
 
 
@@ -33,6 +32,7 @@ async def the_looping(logger):
             ban_wrapper(),
             loyal_wrapper(),
             digest_wrapper(),
+            remove_photos_wrapper(),
         ]
         exceptions = await asyncio.gather(*tasks, return_exceptions=True)
         for ind, exc in enumerate(exceptions[:-1]):
@@ -64,7 +64,8 @@ if __name__ == "__main__":
     logger.critical("Starting bot...")
 
     lw = LoopWrapper(
-        on_startup=[init_schemas(), init_groups(), init_accesses()], tasks=[the_looping(logger)]
+        on_startup=[init_schemas(), init_groups(), init_accesses()],
+        tasks=[the_looping(logger)],
     )
 
     bot_bot.loop_wrapper = lw

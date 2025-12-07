@@ -1,6 +1,6 @@
 import os
 from asyncio import sleep
-from time import time_ns
+from datetime import datetime
 from traceback import format_exception
 from typing import Optional
 
@@ -9,6 +9,7 @@ from aiohttp.client_exceptions import ClientResponseError
 from vkbottle.bot import Message
 from vkbottle_types.objects import MessagesMessageAttachment as Attachment
 
+from config.time import TZ
 from config.vk import USER_LOTS_LIMIT
 from database.lots.utils import add_lot, get_lots_by_fields
 from database.users.utils import get_user
@@ -64,33 +65,36 @@ async def form_callback(event: MessageEvent):
     await state_dispenser.set(event.object.peer_id, AuctionCreating.FORM_INPUT)
 
 
-async def save_photo(url: str, photo_id: int):
+async def save_photo(user_id: int, url: str, photo_id: int):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             response.raise_for_status()
             data = await response.read()
 
     ext = url.split("?")[0].split(".")[-1]
-    temp_dir = "temp"
-    os.makedirs(temp_dir, exist_ok=True)
+    lots_images_dir = "lots_images"
+    today_dir = datetime.now(TZ).date().isoformat()
+    os.makedirs(lots_images_dir, exist_ok=True)
 
-    filepath = f"{temp_dir}/{photo_id}_{time_ns()}.{ext}"
+    filepath = f"{lots_images_dir}/{today_dir}/{user_id}/{photo_id}.{ext}"
     with open(filepath, "wb") as f:
         f.write(data)
 
     return filepath
 
 
-async def get_photo_path(attachment: Attachment, try_: int = 1):
+async def get_photo_path(user_id: int, attachment: Attachment, try_: int = 1):
     try:
-        return await save_photo(attachment.photo.orig_photo.url, attachment.photo.id)
+        return await save_photo(
+            user_id, attachment.photo.orig_photo.url, attachment.photo.id
+        )
     except ClientResponseError as e:
         if e.code != 404:
             raise e
         if try_ > 5:
             raise SavingPhotoError(attachment, e)
         sleep(1)
-        return await get_photo_path(attachment, try_ + 1)
+        return await get_photo_path(user_id, attachment, try_ + 1)
 
 
 async def get_attachments(msg: Message):
@@ -104,7 +108,7 @@ async def get_attachments(msg: Message):
     photos = list(filter(lambda x: x.photo, attachments))
     paths = []
     for a in photos:
-        filepath = await get_photo_path(a)
+        filepath = await get_photo_path(msg.from_id, a)
         paths.append(filepath)
     return attachments, paths
 

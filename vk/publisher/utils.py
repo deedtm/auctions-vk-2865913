@@ -127,23 +127,24 @@ async def upload_photo(
 
 
 async def remove_excessive_photos():
-    lots = await get_lots_by_fields(moderation_status=LotStatusDB.CLOSED.value)
-    lots.extend(
-        await get_lots_by_fields(
-            moderations_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
-        )
-    )
-    if not lots:
-        return
+    
+    # lots = await get_lots_by_fields(moderation_status=LotStatusDB.CLOSED.value)
+    # lots.extend(
+    #     await get_lots_by_fields(
+    #         moderations_status=LotStatusDB.FAILED_USER_PHOTO_UPLOAD.value
+    #     )
+    # )
+    # if not lots:
+    #     return
 
-    removed_paths = []
-    for l in lots:
-        paths = l.photos_paths.split(",")
-        for p in paths:
-            try:
-                os.remove(p)
-                removed_paths.append(p)
-            except FileNotFoundError:
-                pass
+    # removed_paths = []
+    # for l in lots:
+    #     paths = l.photos_paths.split(",")
+    #     for p in paths:
+    #         try:
+    #             os.remove(p)
+    #             removed_paths.append(p)
+    #         except FileNotFoundError:
+    #             pass
             
-    return removed_paths, lots
+    # return removed_paths, lots
