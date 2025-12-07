@@ -86,6 +86,8 @@ async def end_auctions():
 
     delays = [DEFAULT_DELAY]
     for lot in lots:
+        await update_lot_data(lot.id, moderation_status=LotStatusDB.WAITING_END)
+    for lot in lots:
         delays.append(await _end_lot(lot))
 
     delays = list(filter(lambda x: x is not None, delays))

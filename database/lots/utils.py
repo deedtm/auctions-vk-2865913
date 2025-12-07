@@ -1,12 +1,12 @@
 import random
 from datetime import datetime
 from html import escape
-from config.time import TZ
 
 from sqlalchemy import delete as sqlalchemy_delete
 from sqlalchemy import or_, select
 from sqlalchemy import update as sqlalchemy_update
 
+from config.time import TZ
 from enums.moderation import LotStatusDB
 from types_.lot import Lot
 
@@ -296,7 +296,10 @@ async def is_lot_sended(lot_id: int) -> bool:
 async def is_ongoing_auction(group_id: int, post_id: int, penalty: int = 0) -> bool:
     """Check if the auction is ongoing"""
     lot = await get_lot(group_id=group_id, post_id=post_id)
-    if lot and lot.end_date + penalty >= int(datetime.now(TZ).timestamp()):
+    if lot and (
+        lot.moderation_status == LotStatusDB.WAITING_END
+        or (lot.end_date + penalty >= int(datetime.now(TZ).timestamp()))
+    ):
         return True
     return False
 

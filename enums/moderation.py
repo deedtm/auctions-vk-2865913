@@ -12,6 +12,7 @@ class LotStatusDB(Enum):
     WAITING_LIMIT = "waiting_limit"
     MOVED = "moved"
     FAILED_USER_PHOTO_UPLOAD = "failed_user_photo_upload"
+    WAITING_END = "waiting_end"
 
     def __str__(self):
         return self.value

@@ -72,9 +72,10 @@ async def pay_handler(msg: Message):
 async def success_payment(
     e: MessageEvent, payload: dict = None, add_rating: bool = True
 ):
-    user, commission = payload["user"], payload['commission']
+    user_before, commission = payload["user"], payload["commission"]
+    user = await get_user(user_before.user_id)
     tmpl = COMMANDS["commission"]["success_payment"]
-    text = tmpl.format(user.balance, max(0, user.balance - commission))
+    text = tmpl.format(user_before.balance, user.balance)
     await e.answer(text)
 
     lots = payload.get("lots", payload.get("all_lots"))
