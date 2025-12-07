@@ -30,6 +30,7 @@ DEFAULT_DELAY = 60
 
 
 async def remove_photos_wrapper():
+    os.makedirs("lots_images", exist_ok=True)
     while True:
         try:
             await remove_photos()
