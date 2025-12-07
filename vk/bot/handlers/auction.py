@@ -74,9 +74,10 @@ async def save_photo(user_id: int, url: str, photo_id: int):
     ext = url.split("?")[0].split(".")[-1]
     lots_images_dir = "lots_images"
     today_dir = datetime.now(TZ).date().isoformat()
-    os.makedirs(lots_images_dir, exist_ok=True)
+    final_dir = f"{lots_images_dir}/{today_dir}/{user_id}"
+    os.makedirs(final_dir, exist_ok=True)
 
-    filepath = f"{lots_images_dir}/{today_dir}/{user_id}/{photo_id}.{ext}"
+    filepath = f"{final_dir}/{photo_id}.{ext}"
     with open(filepath, "wb") as f:
         f.write(data)
 
