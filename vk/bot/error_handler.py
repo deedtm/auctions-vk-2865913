@@ -38,7 +38,7 @@ async def vk_api_9_handler(*args, **kwargs):
         o, api = args[1]["object"], args[2]
         text = ERRORS["flood_control"].format(sleep_delay)
         await api.messages.send(
-            message=text, peer_id=o["peer_id"], random_id=randint(10**6, 10**8)
+            message=text, peer_id=o["peer_id"], random_id=0
         )
     else:
         logger.warning(

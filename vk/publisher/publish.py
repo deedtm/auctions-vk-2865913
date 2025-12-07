@@ -134,7 +134,7 @@ async def send_overlimited_notification(user_id: int, lots: list[Lot]):
     bot_api = get_api(lots[0].group_id)
     await bot_api.messages.send(
         peer_id=user_id,
-        random_id=randint(10**6, 10**7),
+        random_id=0,
         message=text,
         keyboard=overlimit_kb(with_other_group, gid),
     )
@@ -215,7 +215,7 @@ async def _post_lot(lot: Lot):
         text = PUBLISH["published"].format(hl)
         bot_api = get_api(lot.group_id)
         await bot_api.messages.send(
-            peer_id=lot.user_id, random_id=randint(10**6, 10**7), message=text
+            peer_id=lot.user_id, random_id=0, message=text
         )
         return True
 

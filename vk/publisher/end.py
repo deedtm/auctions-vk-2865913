@@ -50,7 +50,9 @@ async def remove_photos():
             rmtree(f"lots_images/{d}")
             successful.append(d)
         except Exception as e:
-            logger.error(f'Error while trying to remove photos from {d}: {format_exc()}')
+            logger.error(
+                f"Error while trying to remove photos from {d}: {format_exc()}"
+            )
 
     if to_delete:
         logger.debug(f"Automatically removed photos from {', '.join(successful)} days")
@@ -188,11 +190,9 @@ async def _send_notification(
     text = template.format(lot=hl, **template_kwargs)
     api = get_api(lot.group_id)
     try:
-        await api.messages.send(
-            peer_id=peer_id, message=text, random_id=randint(10**7, 10**8), keyboard=kb
-        )
+        await api.messages.send(peer_id=peer_id, message=text, random_id=0, keyboard=kb)
     except VKAPIError as e:
         logger.debug(
-            f"[{e.code}] Can't send message to user {peer_id}: {e.error_msg} || {e}"
+            f"[{e.code}] Can't send message to user {peer_id}: {e.error_msg} || {e} (kwargs: {peer_id=}, message={text}, random_id=0, keyboard={kb})"
         )
         # await state_dispenser.set(user_id, recipient + "_state", lot=lot)

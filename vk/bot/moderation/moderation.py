@@ -93,4 +93,4 @@ async def _send_result(lot: Lot):
         args.append(lot.moderation_response or "")
     text = MODERATION[lot.moderation_result].format(*args)
     api = get_api(lot.group_id)
-    await api.messages.send(lot.user_id, message=text, random_id=randint(10**6, 10**8))
+    await api.messages.send(lot.user_id, message=text, random_id=0)
