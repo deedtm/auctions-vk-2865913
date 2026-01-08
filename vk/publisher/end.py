@@ -97,7 +97,7 @@ async def end_wrapper():
     while True:
         try:
             delay = await end_auctions()
-            await sleep(delay + BETS_PENALTY_SECONDS)
+            await sleep(delay)
         except Exception as e:
             logger.error(f"end_wrapper: {e.__class__.__name__}: {e}")
             return
