@@ -1,5 +1,5 @@
 from asyncio import sleep
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import time
 
 from vkbottle_types.codegen.objects import GroupsGroupFull
@@ -28,6 +28,8 @@ async def digest_wrapper():
     delay = DEFAULT_DELAY
     while True:
         try:
+            if now - datetime.now(TZ) >= timedelta(days=3):
+                groups = await cache_pic_for_all_groups()
             await post_digests(groups)
             await sleep(delay)
         except Exception as e:
