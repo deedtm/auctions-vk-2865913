@@ -294,14 +294,19 @@ async def is_lot_sended(lot_id: int) -> bool:
 
 
 async def is_ongoing_auction(group_id: int, post_id: int, penalty: int = 0) -> bool:
-    """Check if the auction is ongoing"""
+    """
+    Check if the auction is ongoing.
+    """
     lot = await get_lot(group_id=group_id, post_id=post_id)
-    if lot and (
-        lot.moderation_status == LotStatusDB.WAITING_END
-        or (lot.end_date + penalty >= int(datetime.now(TZ).timestamp()))
-    ):
-        return True
-    return False
+    if not lot:
+        return False
+    if lot.moderation_status == LotStatusDB.ENDED.value:
+        return False
+    now = int(datetime.now(TZ).timestamp())
+    if now > lot.end_date + penalty:
+        return False
+    return True
+
 
 
 async def update_lot_data(lot_id: int = None, lot: DBLot = None, **fields) -> bool:

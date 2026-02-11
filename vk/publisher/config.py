@@ -8,7 +8,7 @@ from ..types.labeler import labeler
 PUBLISHER_TOKENS = os.getenv("PUBLISHER_TOKENS").split(" ")
 USER_TOKEN = os.getenv("USER_TOKEN")
 
-BETS_PENALTY_SECONDS = 0
+BETS_PENALTY_SECONDS = 60
 
 apis = [API(token) for token in PUBLISHER_TOKENS]
 groups_apis = {}
